@@ -1,0 +1,22 @@
+## .NET
+bin/
+obj/
+out/
+
+## Visual Studio / Rider
+.vs/
+.idea/
+*.user
+*.suo
+
+## Test results
+[Tt]est[Rr]esult*/
+*.trx
+
+## OS
+.DS_Store
+Thumbs.db
+
+## Secrets (never commit real connection strings/keys)
+appsettings.*.local.json
+*.pfx

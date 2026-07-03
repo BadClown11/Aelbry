@@ -1,0 +1,75 @@
+@{
+    ViewData["Title"] = "Usuarios";
+}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4>Usuarios</h4>
+    <div class="d-flex gap-2">
+        <input type="number" id="filterCompanyId" class="form-control form-control-sm" placeholder="ID de empresa" style="width: 160px" />
+        <button class="btn btn-outline-secondary btn-sm" onclick="Users.loadAll()">Buscar</button>
+        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#userModal" onclick="Users.openCreate()">Nuevo usuario</button>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Correo</th>
+                    <th>Cargo</th>
+                    <th>Activo</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="userRows"></tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="userModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Usuario</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-2">
+                    <label class="form-label">Empresa (ID)</label>
+                    <input class="form-control" id="userCompanyId" />
+                </div>
+                <div class="row">
+                    <div class="col mb-2">
+                        <label class="form-label">Nombre</label>
+                        <input class="form-control" id="userFirstName" />
+                    </div>
+                    <div class="col mb-2">
+                        <label class="form-label">Apellido</label>
+                        <input class="form-control" id="userLastName" />
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">Correo</label>
+                    <input class="form-control" id="userEmail" />
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">Cargo</label>
+                    <input class="form-control" id="userJobTitle" />
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">Contrasena inicial</label>
+                    <input type="password" class="form-control" id="userPassword" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button class="btn btn-primary" onclick="Users.save()">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/users.js"></script>
+}
