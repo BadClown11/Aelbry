@@ -1,6 +1,7 @@
 using System.Text;
 using Aelbry.BL;
 using Aelbry.BL.AI;
+using Aelbry.BL.Documents;
 using Aelbry.BL.Email;
 using Aelbry.BL.Import;
 using Aelbry.BL.Notifications;
@@ -52,6 +53,11 @@ builder.Services.AddScoped<INotificationPublisher, SignalRNotificationPublisher>
 builder.Services.AddScoped<NotificationBL>();
 builder.Services.AddScoped<DueDateReminderBL>();
 builder.Services.AddHostedService<DueDateReminderService>();
+
+builder.Services.Configure<StorageOptions>(builder.Configuration.GetSection(StorageOptions.SectionName));
+builder.Services.AddSingleton<FileStorageService>();
+builder.Services.AddScoped<DocumentBL>();
+builder.Services.AddScoped<FileBL>();
 
 var jwtSection = builder.Configuration.GetSection(JwtOptions.SectionName);
 

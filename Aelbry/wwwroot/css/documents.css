@@ -1,0 +1,26 @@
+/* Documentos & Archivos (Modulo 6, parte 3) */
+
+#editorContent {
+    resize: vertical;
+}
+
+#editorPreview {
+    background-color: var(--aelbry-surface-alt);
+}
+
+#editorPreview h1,
+#editorPreview h2,
+#editorPreview h3 {
+    font-weight: 600;
+}
+
+#editorPreview pre {
+    background-color: var(--aelbry-surface);
+    border: 1px solid var(--aelbry-border);
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+}
+
+#editorPreview code {
+    color: var(--aelbry-primary-dark);
+}
