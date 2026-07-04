@@ -1,18 +1,1 @@
-body {
-    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
-}
-
-.auth-card {
-    max-width: 420px;
-    margin: 6rem auto 0;
-}
-
-.card {
-    border: none;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-    border-radius: 0.75rem;
-}
-
-.table thead {
-    background-color: #f1f3f5;
-}
+/* Estilos compartidos por todas las paginas viven en common.css para no duplicar reglas. */

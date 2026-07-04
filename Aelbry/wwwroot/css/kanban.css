@@ -1,0 +1,33 @@
+/* Tablero Kanban (Modulo 5) */
+
+#kanbanBoard .card {
+    transition: box-shadow 0.15s ease, transform 0.1s ease;
+}
+
+.kanban-column {
+    background-color: var(--aelbry-surface-alt);
+    border-radius: 0 0 var(--aelbry-radius) var(--aelbry-radius);
+    min-height: 420px;
+}
+
+.kanban-column .card {
+    cursor: grab;
+    border-radius: 0.5rem;
+}
+
+.kanban-column .card:active {
+    cursor: grabbing;
+}
+
+.kanban-column .card:hover {
+    box-shadow: var(--aelbry-shadow-lg);
+    transform: translateY(-1px);
+}
+
+.sortable-ghost {
+    opacity: 0.35;
+}
+
+.sortable-chosen {
+    box-shadow: var(--aelbry-shadow-lg) !important;
+}

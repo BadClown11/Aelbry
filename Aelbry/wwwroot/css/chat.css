@@ -1,0 +1,52 @@
+/* Chat Empresarial (Modulo 6) */
+
+#chatMessages {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.chat-bubble {
+    max-width: 75%;
+    padding: 0.5rem 0.85rem;
+    border-radius: 1rem;
+    background-color: var(--aelbry-surface-alt);
+    border: 1px solid var(--aelbry-border);
+    align-self: flex-start;
+}
+
+.chat-bubble.own {
+    align-self: flex-end;
+    background-color: var(--aelbry-primary);
+    color: #fff;
+    border-color: var(--aelbry-primary);
+}
+
+.chat-bubble.own .text-muted {
+    color: rgba(255, 255, 255, 0.75) !important;
+}
+
+.chat-bubble .chat-actions .btn {
+    padding: 0;
+    font-size: 0.75rem;
+}
+
+.chat-reaction-btn {
+    border: none;
+    background: transparent;
+    padding: 0 0.15rem;
+    font-size: 0.95rem;
+    line-height: 1;
+}
+
+.chat-reaction-btn:hover {
+    transform: scale(1.15);
+}
+
+#conversationRows .list-group-item {
+    cursor: pointer;
+}
+
+#conversationRows .list-group-item:hover {
+    background-color: var(--aelbry-surface-alt);
+}

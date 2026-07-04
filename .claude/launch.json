@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "aelbry-web",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--project", "Aelbry/Aelbry.csproj", "--urls", "http://localhost:63555"],
+      "port": 63555
+    }
+  ]
+}

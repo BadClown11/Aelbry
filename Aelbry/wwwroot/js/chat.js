@@ -127,19 +127,20 @@ window.ChatPage = (function () {
         if (!belongsHere) return;
 
         const container = document.getElementById('chatMessages');
+        const isOwn = message.senderUserId === currentUserId;
         const div = document.createElement('div');
-        div.className = 'mb-2';
+        div.className = `chat-bubble ${isOwn ? 'own' : ''}`;
         div.dataset.messageId = message.chatMessageId;
 
-        const reactionButtons = EMOJIS.map((e) => `<button class="btn btn-sm btn-light border-0 p-0 px-1" onclick="ChatPage.toggleReaction(${message.chatMessageId}, '${e}')">${e}</button>`).join('');
+        const reactionButtons = EMOJIS.map((e) => `<button class="chat-reaction-btn" onclick="ChatPage.toggleReaction(${message.chatMessageId}, '${e}')">${e}</button>`).join('');
 
         div.innerHTML = `
-            <div class="d-flex justify-content-between">
+            <div class="d-flex justify-content-between gap-2">
                 <span><strong>${escapeHtml(message.senderName)}</strong> <span class="text-muted small">${new Date(message.createdDate).toLocaleTimeString()}</span></span>
-                ${message.senderUserId === currentUserId ? `<button class="btn btn-sm btn-link text-danger p-0" onclick="ChatPage.deleteMessage(${message.chatMessageId})">Eliminar</button>` : ''}
+                ${isOwn ? `<button class="btn btn-sm btn-link text-danger p-0 chat-actions" onclick="ChatPage.deleteMessage(${message.chatMessageId})">Eliminar</button>` : ''}
             </div>
             <div>${escapeHtml(message.text)}</div>
-            <div class="small">
+            <div class="small chat-actions">
                 ${reactionButtons}
                 <button class="btn btn-sm btn-link p-0 ms-2" onclick="ChatPage.replyTo(${message.chatMessageId})">Responder</button>
             </div>

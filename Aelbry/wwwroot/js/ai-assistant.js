@@ -26,6 +26,7 @@ window.AiAssistant = (function () {
         select.innerHTML = result.result === 'OK'
             ? result.data.map((s) => `<option value="${s.projectStatusId}">${s.name}</option>`).join('')
             : '';
+        Aelbry.ui.initSelect2(select);
     }
 
     function appendMessage(html, alignRight) {

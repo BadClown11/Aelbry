@@ -1,0 +1,29 @@
+/* Calendario multivista (Modulo 5) - FullCalendar no trae tema oscuro propio */
+
+.fc {
+    --fc-border-color: var(--aelbry-border);
+    --fc-page-bg-color: var(--aelbry-surface);
+    --fc-neutral-bg-color: var(--aelbry-surface-alt);
+    --fc-list-event-hover-bg-color: var(--aelbry-surface-alt);
+    --fc-today-bg-color: var(--aelbry-primary-light);
+    color: var(--aelbry-text);
+}
+
+.fc .fc-button-primary {
+    background-color: var(--aelbry-primary);
+    border-color: var(--aelbry-primary);
+}
+
+.fc .fc-button-primary:hover {
+    background-color: var(--aelbry-primary-dark);
+    border-color: var(--aelbry-primary-dark);
+}
+
+.fc .fc-button-primary:disabled {
+    background-color: var(--aelbry-primary);
+    opacity: 0.65;
+}
+
+.fc-toolbar-title {
+    color: var(--aelbry-text);
+}

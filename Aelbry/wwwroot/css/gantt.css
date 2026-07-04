@@ -1,0 +1,26 @@
+/* Diagrama de Gantt (Modulo 5) */
+
+.bar-wrapper .bar {
+    fill: var(--aelbry-primary);
+}
+
+.bar-wrapper .bar-progress {
+    fill: var(--aelbry-primary-dark);
+}
+
+.bar-wrapper.gantt-critical .bar {
+    fill: var(--aelbry-danger) !important;
+}
+
+.bar-wrapper.gantt-critical .bar-progress {
+    fill: #9a1414 !important;
+}
+
+.gantt .grid-header,
+.gantt .grid-row {
+    fill: var(--aelbry-surface);
+}
+
+.gantt text {
+    fill: var(--aelbry-text);
+}

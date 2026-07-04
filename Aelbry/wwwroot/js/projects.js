@@ -51,6 +51,7 @@ window.Projects = (function () {
     function fillStatusSelect(statuses) {
         const select = document.getElementById('projectStatusId');
         select.innerHTML = statuses.map((s) => `<option value="${s.projectStatusId}">${s.name}</option>`).join('');
+        Aelbry.ui.initSelect2(select);
     }
 
     async function loadStatuses() {
@@ -524,6 +525,7 @@ window.Projects = (function () {
         select.innerHTML = result.result === 'OK'
             ? result.data.map((s) => `<option value="${s.projectStatusId}">${s.name}</option>`).join('')
             : '';
+        Aelbry.ui.initSelect2(select);
     }
 
     async function confirmApplyTemplate() {

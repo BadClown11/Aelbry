@@ -39,6 +39,7 @@ window.Kanban = (function () {
                 });
             }
         }
+        Aelbry.ui.initSelect2(tagSelect);
 
         const treeResult = await Aelbry.api.get(`/Activity/GetTreeByProject?projectId=${pid}`);
         allActivities = treeResult.result === 'OK' ? flatten(treeResult.data, []) : [];
