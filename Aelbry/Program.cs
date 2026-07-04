@@ -3,6 +3,7 @@ using Aelbry.BL;
 using Aelbry.BL.AI;
 using Aelbry.BL.Import;
 using Aelbry.BL.Security;
+using Aelbry.Web.Hubs;
 using Aelbry.Web.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -35,6 +36,9 @@ builder.Services.AddScoped<AiAssistantBL>();
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped<ExcelActivityImportBL>();
 
+builder.Services.AddScoped<ChatBL>();
+builder.Services.AddSignalR();
+
 var jwtSection = builder.Configuration.GetSection(JwtOptions.SectionName);
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -50,6 +54,23 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSection["Key"] ?? string.Empty)),
             ValidateLifetime = true,
             ClockSkew = TimeSpan.Zero,
+        };
+
+        // El cliente JS de SignalR no puede mandar el header Authorization en todos los
+        // transportes (ej. WebSockets); en su lugar manda el JWT como query string
+        // "access_token" solo para las llamadas al hub.
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+                if (!string.IsNullOrEmpty(accessToken) && context.HttpContext.Request.Path.StartsWithSegments("/hubs"))
+                {
+                    context.Token = accessToken;
+                }
+
+                return Task.CompletedTask;
+            },
         };
     });
 
@@ -76,5 +97,7 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Auth}/{action=Login}/{id?}");
+
+app.MapHub<ChatHub>("/hubs/chat");
 
 app.Run();

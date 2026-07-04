@@ -1,0 +1,56 @@
+@{
+    ViewData["Title"] = "Chat";
+}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4>Chat Empresarial</h4>
+    <span class="small text-muted" id="onlineIndicator">Conectando...</span>
+</div>
+
+<div class="row" style="height: 70vh;">
+    <div class="col-md-3 h-100 d-flex flex-column">
+        <div class="card mb-2">
+            <div class="card-body p-2">
+                <label class="form-label small mb-1">Canal de proyecto</label>
+                <div class="input-group input-group-sm">
+                    <input type="number" class="form-control" id="channelProjectId" placeholder="ID de proyecto" />
+                    <button class="btn btn-outline-primary" onclick="ChatPage.openProjectChannel()">Ir</button>
+                </div>
+            </div>
+        </div>
+        <div class="card mb-2">
+            <div class="card-body p-2">
+                <label class="form-label small mb-1">Nuevo mensaje directo</label>
+                <div class="input-group input-group-sm">
+                    <input type="number" class="form-control" id="dmUserId" placeholder="ID de usuario" />
+                    <button class="btn btn-outline-primary" onclick="ChatPage.openDirectMessage()">Ir</button>
+                </div>
+            </div>
+        </div>
+        <div class="card flex-grow-1 overflow-auto">
+            <div class="card-header small fw-semibold">Mensajes directos</div>
+            <ul class="list-group list-group-flush" id="conversationRows"></ul>
+        </div>
+    </div>
+
+    <div class="col-md-9 h-100 d-flex flex-column">
+        <div class="card flex-grow-1 d-flex flex-column">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span id="channelTitle" class="fw-semibold">Selecciona un canal de proyecto o un mensaje directo</span>
+                <span class="small text-muted fst-italic" id="typingIndicator"></span>
+            </div>
+            <div class="card-body flex-grow-1 overflow-auto" id="chatMessages"></div>
+            <div class="card-footer">
+                <div id="replyingTo" class="small text-muted mb-1 d-none"></div>
+                <div class="input-group">
+                    <input type="text" class="form-control" id="chatInput" placeholder="Escribe un mensaje..." onkeydown="ChatPage.onInputKeyDown(event)" oninput="ChatPage.onInputTyping()" />
+                    <button class="btn btn-primary" onclick="ChatPage.sendMessage()">Enviar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/@@microsoft/signalr@@8.0.0/dist/browser/signalr.min.js"></script>
+    <script src="~/js/chat.js"></script>
+}

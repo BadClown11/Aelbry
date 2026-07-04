@@ -98,5 +98,6 @@ Aelbry.api = (function () {
         login,
         logout,
         isAuthenticated: () => !!getAccessToken(),
+        getAccessToken,
     };
 })();
