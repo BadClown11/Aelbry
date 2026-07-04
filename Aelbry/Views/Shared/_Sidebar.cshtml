@@ -1,0 +1,166 @@
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar__project-picker">
+        <label class="sidebar__section-label sidebar-label">Proyecto Activo</label>
+        <select class="project-select" id="activeProjectSelect">
+            <option value="">— Seleccionar proyecto —</option>
+            <option value="ael" selected>🛡️ Aelbry Platform v1.0</option>
+            <option value="erp">💼 ERP Cliente Alfa</option>
+            <option value="mob">📱 App Móvil Delivery</option>
+        </select>
+    </div>
+    <nav class="sidebar__nav" id="sidebar-nav">
+
+        <span class="sidebar__section-label sidebar-label">Administración</span>
+
+        <a href="/Company/Index" class="nav-item" data-view="company">
+            <span class="nav-item__inner">
+                <i data-lucide="building-2" class="nav-item__icon"></i>
+                <span class="nav-item__label nav-label">Empresas</span>
+            </span>
+        </a>
+
+        <a href="/User/Index" class="nav-item" data-view="users">
+            <span class="nav-item__inner">
+                <i data-lucide="users" class="nav-item__icon"></i>
+                <span class="nav-item__label nav-label">Usuarios</span>
+            </span>
+        </a>
+
+        <a href="/Project/Index" class="nav-item" data-view="projects">
+            <span class="nav-item__inner">
+                <i data-lucide="folder-kanban" class="nav-item__icon"></i>
+                <span class="nav-item__label nav-label">Proyectos</span>
+            </span>
+        </a>
+
+        <span class="sidebar__section-label sidebar-label">Vistas de Proyecto</span>
+
+        <a href="/Activity/Index" class="nav-item" data-view="activities">
+            <span class="nav-item__inner">
+                <i data-lucide="list-todo" class="nav-item__icon"></i>
+                <span class="nav-item__label nav-label">Actividades</span>
+            </span>
+        </a>
+
+        <a href="/Kanban/Index" class="nav-item" data-view="kanban">
+            <span class="nav-item__inner">
+                <i data-lucide="kanban" class="nav-item__icon"></i>
+                <span class="nav-item__label nav-label">Tablero Kanban</span>
+            </span>
+            <span class="nav-badge nav-badge--neutral sidebar-badge" id="badge-kanban">6</span>
+        </a>
+
+        <a href="/Gantt/Index" class="nav-item" data-view="gantt">
+            <span class="nav-item__inner">
+                <i data-lucide="gantt-chart" class="nav-item__icon"></i>
+                <span class="nav-item__label nav-label">Gantt &amp; CPM</span>
+            </span>
+        </a>
+
+        <a href="/CalendarView/Index" class="nav-item" data-view="calendar">
+            <span class="nav-item__inner">
+                <i data-lucide="calendar" class="nav-item__icon"></i>
+                <span class="nav-item__label nav-label">Calendario</span>
+            </span>
+        </a>
+
+        <span class="sidebar__section-label sidebar-label">Colaboración</span>
+
+        <a href="/TimeEntry/Index" class="nav-item" data-view="timeentry">
+            <span class="nav-item__inner">
+                <i data-lucide="timer" class="nav-item__icon"></i>
+                <span class="nav-item__label nav-label">Mis Horas</span>
+            </span>
+        </a>
+
+        <a href="/Chat/Index" class="nav-item" data-view="chat">
+            <span class="nav-item__inner">
+                <i data-lucide="message-square-code" class="nav-item__icon"></i>
+                <span class="nav-item__label nav-label">Chat del Proyecto</span>
+            </span>
+            <span class="nav-badge nav-badge--danger sidebar-badge" id="badge-chat">3</span>
+        </a>
+
+        <a href="/Document/Index" class="nav-item" data-view="documents">
+            <span class="nav-item__inner">
+                <i data-lucide="files" class="nav-item__icon"></i>
+                <span class="nav-item__label nav-label">Documentos</span>
+            </span>
+        </a>
+        <span class="sidebar__section-label sidebar-label">Herramientas</span>
+
+        <a href="/AiAssistant/Index" class="nav-item" data-view="ai">
+            <span class="nav-item__inner">
+                <i data-lucide="sparkles" class="nav-item__icon"></i>
+                <span class="nav-item__label nav-label">Asistente IA</span>
+            </span>
+        </a>
+
+        <a href="/AutomationRule/Index" class="nav-item" data-view="automations">
+            <span class="nav-item__inner">
+                <i data-lucide="zap" class="nav-item__icon"></i>
+                <span class="nav-item__label nav-label">Automatizaciones</span>
+            </span>
+        </a>
+
+        <a href="/Report/Index" class="nav-item" data-view="reports">
+            <span class="nav-item__inner">
+                <i data-lucide="bar-chart-2" class="nav-item__icon"></i>
+                <span class="nav-item__label nav-label">Reportes</span>
+            </span>
+        </a>
+
+        <a href="/AuditLog/Index" class="nav-item" data-view="audit">
+            <span class="nav-item__inner">
+                <i data-lucide="shield-check" class="nav-item__icon"></i>
+                <span class="nav-item__label nav-label">Auditoría</span>
+            </span>
+        </a>
+
+    </nav>
+    <div class="sidebar__footer">
+        <a href="/AiAssistant/Index" class="btn-ai" id="btn-ai">
+            <i data-lucide="sparkles"></i>
+            <span class="nav-label">Asistente IA (Gemini)</span>
+        </a>
+
+        <button class="btn-collapse" onclick="toggleSidebar()" id="btn-collapse">
+            <i data-lucide="chevron-left" id="collapse-icon"></i>
+            <span class="nav-label" id="collapse-text">Colapsar Menú</span>
+        </button>
+    </div>
+</aside>
+
+<script>
+    // ── Marcar enlace activo según URL actual ──
+    function setActiveLink() {
+        const path = window.location.pathname.toLowerCase();
+        document.querySelectorAll('.nav-item[data-view]').forEach(link => {
+            const href = (link.getAttribute('href') || '').toLowerCase();
+            // Coincidencia por controlador (primer segmento)
+            const controller = href.split('/')[1];
+            if (controller && path.includes(controller)) {
+                link.classList.add('nav-item--active');
+                const icon = link.querySelector('.nav-item__icon');
+                if (icon) icon.classList.add('nav-item__icon--active');
+            }
+        });
+    }
+    setActiveLink();
+
+    // ── Colapsar sidebar ──
+    let sidebarCollapsed = false;
+
+    function toggleSidebar() {
+        sidebarCollapsed = !sidebarCollapsed;
+        const sidebar = document.getElementById('sidebar');
+        const collapseIcon = document.getElementById('collapse-icon');
+
+        sidebar.classList.toggle('sidebar--collapsed', sidebarCollapsed);
+        collapseIcon.setAttribute('data-lucide', sidebarCollapsed ? 'chevron-right' : 'chevron-left');
+        lucide.createIcons();
+
+        // Notificar al layout padre si existe (para ajustar el main)
+        window.dispatchEvent(new CustomEvent('sidebarToggle', { detail: { collapsed: sidebarCollapsed } }));
+    }
+</script>

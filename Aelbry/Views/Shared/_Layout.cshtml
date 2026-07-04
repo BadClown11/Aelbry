@@ -1,89 +1,272 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="light">
 <head>
-    <meta charset="utf-8" />
+    <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Aelbry</title>
+
     <script>
+        // Aplica el tema antes de pintar para evitar flash. Se setean dos atributos porque
+        // conviven dos hojas de estilo: styles.css (shell topbar/sidebar) usa data-theme,
+        // common.css (Bootstrap + paginas del sistema) usa data-bs-theme.
         (function () {
-            var theme = localStorage.getItem('aelbry_theme') || 'light';
-            document.documentElement.setAttribute('data-bs-theme', theme);
+            var t = localStorage.getItem('aelbry_theme') || 'light';
+            document.documentElement.setAttribute('data-theme', t);
+            document.documentElement.setAttribute('data-bs-theme', t);
         })();
     </script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
-    <link rel="stylesheet" href="~/css/common.css" />
-    <link rel="stylesheet" href="~/css/site.css" />
-    @RenderSection("Styles", required: false)
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@@latest"></script>
+
+    <!-- Bootstrap: todas las vistas del sistema (Kanban, Gantt, Chat, Documentos, etc.)
+         estan construidas con sus clases y componentes (modal, offcanvas, grid, forms). -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@@5.3.3/dist/css/bootstrap.min.css" />
+
+    <!-- Select2 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@@4.1.0-rc.0/dist/css/select2.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+
+    <!-- Estilos propios -->
+    <link rel="stylesheet" href="~/css/styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+
+    @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark aelbry-navbar mb-4">
-        <div class="container">
-            <a class="navbar-brand" asp-controller="Company" asp-action="Index">Aelbry</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarContent">
-                <ul class="navbar-nav me-auto flex-wrap">
-                    <li class="nav-item"><a class="nav-link" asp-controller="Company" asp-action="Index">Empresas</a></li>
-                    <li class="nav-item"><a class="nav-link" asp-controller="User" asp-action="Index">Usuarios</a></li>
-                    <li class="nav-item"><a class="nav-link" asp-controller="Project" asp-action="Index">Proyectos</a></li>
-                    <li class="nav-item"><a class="nav-link" asp-controller="Activity" asp-action="Index">Actividades</a></li>
-                    <li class="nav-item"><a class="nav-link" asp-controller="AiAssistant" asp-action="Index">Asistente IA</a></li>
-                    <li class="nav-item"><a class="nav-link" asp-controller="Kanban" asp-action="Index">Kanban</a></li>
-                    <li class="nav-item"><a class="nav-link" asp-controller="Gantt" asp-action="Index">Gantt</a></li>
-                    <li class="nav-item"><a class="nav-link" asp-controller="CalendarView" asp-action="Index">Calendario</a></li>
-                    <li class="nav-item"><a class="nav-link" asp-controller="TimeEntry" asp-action="Index">Mis Horas</a></li>
-                    <li class="nav-item"><a class="nav-link" asp-controller="Chat" asp-action="Index">Chat</a></li>
-                    <li class="nav-item"><a class="nav-link" asp-controller="Document" asp-action="Index">Documentos</a></li>
-                    <li class="nav-item"><a class="nav-link" asp-controller="AutomationRule" asp-action="Index">Automatizaciones</a></li>
-                    <li class="nav-item"><a class="nav-link" asp-controller="Report" asp-action="Index">Reportes</a></li>
-                    <li class="nav-item"><a class="nav-link" asp-controller="AuditLog" asp-action="Index">Auditoria</a></li>
-                </ul>
-                <div class="d-flex align-items-center gap-2">
-                    <div class="dropdown">
-                        <button id="notificationBell" class="btn btn-sm rounded-circle position-relative" title="Notificaciones" style="width: 2.25rem; height: 2.25rem;" data-bs-toggle="dropdown">
-                            🔔
-                            <span id="notificationBadge" class="badge rounded-pill text-bg-danger position-absolute top-0 start-100 translate-middle d-none">0</span>
-                        </button>
-                        <div class="dropdown-menu dropdown-menu-end p-0" style="width: 320px; max-height: 420px; overflow-y: auto;">
-                            <div class="d-flex justify-content-between align-items-center p-2 border-bottom">
-                                <strong class="small">Notificaciones</strong>
-                                <button class="btn btn-sm btn-link p-0" onclick="Notifications.markAllAsRead()">Marcar todas leidas</button>
-                            </div>
-                            <ul class="list-group list-group-flush" id="notificationList">
-                                <li class="list-group-item small text-muted">Sin notificaciones</li>
-                            </ul>
-                        </div>
-                    </div>
-                    <button id="themeToggle" class="btn btn-sm rounded-circle" title="Cambiar tema" style="width: 2.25rem; height: 2.25rem;">
-                        <span id="themeToggleIcon">🌙</span>
-                    </button>
-                    <button id="btnLogout" class="btn btn-outline-light btn-sm">Cerrar sesion</button>
-                </div>
+    <header class="topbar">
+
+        <!-- Izquierda: Logo + Jerarquía tenant -->
+        <div class="topbar__left">
+            <a asp-controller="Company" asp-action="Index" class="topbar__logo">
+                <div class="logo-mark">A</div>
+                <span class="logo-name">Aelbry</span>
+            </a>
+
+            <div class="topbar__divider"></div>
+
+            <div class="tenant-breadcrumb">
+                <span class="tenant-breadcrumb__active" id="tenant-company">—</span>
+                <span class="tenant-breadcrumb__sep">/</span>
+                <span class="tenant-breadcrumb__item" id="tenant-dept">—</span>
+                <span class="tenant-breadcrumb__sep">/</span>
+                <span class="tenant-breadcrumb__item" id="tenant-team">—</span>
             </div>
         </div>
-    </nav>
 
-    <main class="container">
-        @RenderBody()
-    </main>
+        <div class="topbar__search">
+            <i data-lucide="search" class="search-icon"></i>
+            <input type="text" class="search-input"
+                   placeholder="Buscar proyectos, tareas, documentos… (Cmd + K)"
+                   id="global-search" autocomplete="off" />
+        </div>
+        <div class="topbar__right">
+            <div class="timer-pill">
+                <span class="timer-pill__dot">
+                    <span class="timer-pill__dot-ping"></span>
+                    <span class="timer-pill__dot-core"></span>
+                </span>
+                <span class="timer-pill__time" id="live-timer">00:00:00</span>
+                <span class="timer-pill__sep">|</span>
+                <span class="timer-pill__task" id="timer-task-indicator">Sin tarea</span>
+                <button class="timer-pill__toggle" onclick="toggleTimer()" title="Detener / reanudar">
+                    <i data-lucide="square-play" id="timer-icon"></i>
+                </button>
+            </div>
+            <div class="topbar__dropdown" id="notifDropdown">
+                <button class="topbar__icon-btn" id="notificationBell" title="Notificaciones">
+                    <i data-lucide="bell"></i>
+                    <span class="badge-dot" id="notificationBadge" style="display:none"></span>
+                </button>
+                <div class="dropdown-panel" id="notificationPanel">
+                    <div class="dropdown-panel__header">
+                        <strong>Notificaciones</strong>
+                        <button class="dropdown-panel__action"
+                                onclick="Notifications.markAllAsRead()">
+                            Marcar todas leídas
+                        </button>
+                    </div>
+                    <ul class="notification-list" id="notificationList">
+                        <li class="notification-list__empty">Sin notificaciones</li>
+                    </ul>
+                </div>
+            </div>
+            <button class="topbar__icon-btn" id="btn-theme" title="Cambiar tema">
+                <i data-lucide="sun" id="icon-sun"></i>
+                <i data-lucide="moon" id="icon-moon" style="display:none"></i>
+            </button>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+            <div class="topbar__divider"></div>
+            <div class="topbar__profile" id="topbar-profile">
+                <div class="avatar avatar--brand" id="user-avatar">--</div>
+                <div class="topbar__profile-info">
+                    <p class="topbar__profile-name" id="user-name">Cargando…</p>
+                    <p class="topbar__profile-role" id="user-role"></p>
+                </div>
+                <i data-lucide="chevron-down" class="topbar__chevron"></i>
+            </div>
+            <button class="btn-logout" id="btnLogout">Cerrar sesión</button>
+        </div>
+    </header>
+    <div class="app-body" id="app-body">
+
+        <!-- Sidebar -->
+        @await Html.PartialAsync("_Sidebar")
+
+        <!-- Workspace principal -->
+        <main class="workspace" id="main-workspace">
+
+            <!-- Encabezado de proyecto (se rellena por JS o ViewData) -->
+            <section class="project-header" id="project-header">
+                <div class="project-header__inner">
+                    <div class="project-header__meta">
+                        <nav class="breadcrumb" aria-label="Ubicación">
+                            <span class="breadcrumb__item">Proyectos</span>
+                            <i data-lucide="chevron-right" class="breadcrumb__sep"></i>
+                            <span class="breadcrumb__item breadcrumb__item--current"
+                                  id="breadcrumb-project">@(ViewData["ProjectName"] ?? "—")</span>
+                        </nav>
+                        <div class="project-header__title-row">
+                            <h1 class="project-title" id="project-title">
+                                @(ViewData["ProjectName"] ?? "Selecciona un proyecto")
+                            </h1>
+                            <span class="status-badge status-badge--blue"
+                                  id="project-status">
+                                @(ViewData["ProjectStatus"] ?? "")
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="project-header__stats">
+                        <!-- Progreso ponderado -->
+                        <div class="progress-block">
+                            <div class="progress-block__labels">
+                                <span class="progress-block__label">Progreso Ponderado</span>
+                                <span class="progress-block__value" id="header-progress-label">0%</span>
+                            </div>
+                            <div class="progress-track">
+                                <div class="progress-fill" id="header-progress-bar" style="width:0%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Horas -->
+                        <div class="hours-block">
+                            <p class="hours-block__label">Esfuerzo Estimado</p>
+                            <p class="hours-block__value">
+                                <span id="header-hours-estimated">—</span> hrs /
+                                <span class="hours-block__accent" id="header-hours-logged">— registradas</span>
+                            </p>
+                        </div>
+
+                        <!-- Avatares del equipo -->
+                        <div class="avatar-stack" id="team-avatars">
+                            <!-- Se rellena dinámicamente por JS -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Área de contenido dinámico -->
+            <div class="workspace__content" id="workspace-content">
+                @RenderBody()
+            </div>
+        </main>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@@3.7.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@@microsoft/signalr@@8.0.0/dist/browser/signalr.min.js"></script>
-    <script src="~/js/api.js"></script>
-    <script src="~/js/common.js"></script>
-    <script src="~/js/notifications.js"></script>
+
+    <!-- Core de la app -->
+    <script src="~/js/api.js" asp-append-version="true"></script>
+    <script src="~/js/common.js" asp-append-version="true"></script>
+    <script src="~/js/notifications.js" asp-append-version="true"></script>
+
+    <!-- Script inline del layout -->
     <script>
+        lucide.createIcons();
+
+        // ── Tema oscuro/claro ──────────────────────────────────
+        const themeBtn  = document.getElementById('btn-theme');
+        const iconSun   = document.getElementById('icon-sun');
+        const iconMoon  = document.getElementById('icon-moon');
+
+        function applyTheme(dark) {
+            document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+            localStorage.setItem('aelbry_theme', dark ? 'dark' : 'light');
+            iconSun.style.display  = dark ? 'none' : '';
+            iconMoon.style.display = dark ? ''     : 'none';
+        }
+
+        // Estado inicial
+        applyTheme(localStorage.getItem('aelbry_theme') === 'dark');
+
+        themeBtn?.addEventListener('click', () => {
+            applyTheme(document.documentElement.getAttribute('data-theme') !== 'dark');
+        });
+
+        // ── Live Timer ────────────────────────────────────────
+        let _timerRunning = false;
+        let _elapsed = 0;
+
+        setInterval(() => {
+            if (!_timerRunning) return;
+            _elapsed++;
+            const h = String(Math.floor(_elapsed / 3600)).padStart(2, '0');
+            const m = String(Math.floor((_elapsed % 3600) / 60)).padStart(2, '0');
+            const s = String(_elapsed % 60).padStart(2, '0');
+            document.getElementById('live-timer').textContent = `${h}:${m}:${s}`;
+        }, 1000);
+
+        function toggleTimer() {
+            _timerRunning = !_timerRunning;
+            const icon = document.getElementById('timer-icon');
+            icon.setAttribute('data-lucide', _timerRunning ? 'square-play' : 'circle-play');
+            icon.classList.toggle('timer-pill__toggle--paused', !_timerRunning);
+            lucide.createIcons();
+        }
+
+        // Exponer para que otros módulos puedan iniciar el timer
+        window.AelbryTimer = {
+            start(taskLabel) {
+                _elapsed = 0;
+                _timerRunning = true;
+                document.getElementById('timer-task-indicator').textContent = taskLabel || 'Sin tarea';
+                document.getElementById('timer-icon').setAttribute('data-lucide', 'square-play');
+                lucide.createIcons();
+            },
+            stop() { _timerRunning = false; }
+        };
+
+        // ── Dropdown Notificaciones ───────────────────────────
+        document.getElementById('notificationBell')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            document.getElementById('notificationPanel').classList.toggle('is-open');
+        });
+        document.addEventListener('click', () => {
+            document.getElementById('notificationPanel')?.classList.remove('is-open');
+        });
+
+        // ── Logout ────────────────────────────────────────────
         document.getElementById('btnLogout')?.addEventListener('click', () => {
             Aelbry.api.logout().finally(() => window.location.href = '/Auth/Login');
         });
+
+        // ── Sidebar: escuchar evento de colapso para ajustar main ──
+        window.addEventListener('sidebarToggle', (e) => {
+            const main = document.getElementById('main-workspace');
+            if (main) main.classList.toggle('workspace--sidebar-collapsed', e.detail.collapsed);
+        });
     </script>
-    @RenderSection("Scripts", required: false)
+
+    <!-- Sección de scripts de cada vista (Kanban, Gantt, etc.) -->
+    @await RenderSectionAsync("Scripts", required: false)
+
 </body>
 </html>
