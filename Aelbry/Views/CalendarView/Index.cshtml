@@ -1,0 +1,27 @@
+@{
+    ViewData["Title"] = "Calendario";
+}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4>Calendario</h4>
+    <div class="d-flex gap-2">
+        <input type="number" id="filterProjectId" class="form-control form-control-sm" placeholder="ID de proyecto" style="width: 160px" />
+        <button class="btn btn-outline-secondary btn-sm" onclick="CalendarViewPage.loadAll()">Buscar</button>
+    </div>
+</div>
+
+<p class="small text-muted" id="noDateCount"></p>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <div id="calendar"></div>
+    </div>
+</div>
+
+<div id="eventDetails" class="card d-none">
+    <div class="card-body" id="eventDetailsBody"></div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+    <script src="~/js/calendar-view.js"></script>
+}

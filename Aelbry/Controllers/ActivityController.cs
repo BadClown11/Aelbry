@@ -33,6 +33,16 @@ namespace Aelbry.Web.Controllers
             return Exec(() => _activityBL.GetTreeByProject(projectId));
         }
 
+        /// <summary>
+        /// Modulo 5: camino critico (CPM) de las actividades del proyecto, para resaltarlo en el Gantt.
+        /// </summary>
+        [HttpGet]
+        [Authorize(Policy = "Permission:ACTIVITIES_VIEW")]
+        public JsonResult GetCriticalPath(int projectId)
+        {
+            return Exec(() => _activityBL.GetCriticalPath(projectId));
+        }
+
         [HttpGet]
         [Authorize(Policy = "Permission:ACTIVITIES_VIEW")]
         public JsonResult GetById(int activityId)
@@ -60,6 +70,26 @@ namespace Aelbry.Web.Controllers
                 activity.ModifiedBy = CurrentUserId;
                 _activityBL.Update(activity);
             });
+        }
+
+        /// <summary>
+        /// Modulo 5: cambio de estado por drag&amp;drop en el tablero Kanban.
+        /// </summary>
+        [HttpPost]
+        [Authorize(Policy = "Permission:ACTIVITIES_EDIT")]
+        public JsonResult UpdateStatus(int activityId, ActivityStatus status)
+        {
+            return Exec(() => _activityBL.UpdateStatus(activityId, status, CurrentUserId));
+        }
+
+        /// <summary>
+        /// Modulo 5: reprogramacion por arrastre de barras en el Gantt.
+        /// </summary>
+        [HttpPost]
+        [Authorize(Policy = "Permission:ACTIVITIES_EDIT")]
+        public JsonResult UpdateDates(int activityId, DateTime? estimatedStartDate, DateTime? estimatedEndDate)
+        {
+            return Exec(() => _activityBL.UpdateDates(activityId, estimatedStartDate, estimatedEndDate, CurrentUserId));
         }
 
         [HttpPost]

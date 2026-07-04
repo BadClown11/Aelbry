@@ -1,0 +1,41 @@
+@{
+    ViewData["Title"] = "Diagrama de Gantt";
+}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4>Diagrama de Gantt</h4>
+    <div class="d-flex gap-2">
+        <input type="number" id="filterProjectId" class="form-control form-control-sm" placeholder="ID de proyecto" style="width: 160px" />
+        <button class="btn btn-outline-secondary btn-sm" onclick="GanttView.loadAll()">Buscar</button>
+        <select class="form-select form-select-sm" id="viewMode" style="width: 140px" onchange="GanttView.changeViewMode()">
+            <option value="Day">Dia</option>
+            <option value="Week" selected>Semana</option>
+            <option value="Month">Mes</option>
+        </select>
+    </div>
+</div>
+
+<p class="small text-muted">
+    Las barras en <span class="text-danger fw-semibold">rojo</span> forman parte del camino critico (sin holgura).
+    Las actividades sin fechas estimadas se muestran con una fecha provisional a partir de hoy.
+</p>
+
+<div class="card">
+    <div class="card-body">
+        <svg id="ganttChart"></svg>
+    </div>
+</div>
+
+@section Scripts {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/frappe-gantt@0.6.1/dist/frappe-gantt.css" />
+    <script src="https://cdn.jsdelivr.net/npm/frappe-gantt@0.6.1/dist/frappe-gantt.min.js"></script>
+    <style>
+        .bar-wrapper.gantt-critical .bar {
+            fill: #e03131 !important;
+        }
+
+        .bar-wrapper.gantt-critical .bar-progress {
+            fill: #9a1414 !important;
+        }
+    </style>
+    <script src="~/js/gantt.js"></script>
+}

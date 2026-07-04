@@ -234,6 +234,59 @@ namespace Aelbry.DAL
             }
         }
 
+        /// <summary>
+        /// Actualizacion liviana de solo el estado (Modulo 5: drag&amp;drop del tablero Kanban).
+        /// </summary>
+        public void UpdateStatus(int activityId, ActivityStatus status, int modifiedBy)
+        {
+            const string sSp = "SP_ACTIVITY_UPDATE_STATUS";
+
+            using (var cmd = CreateStoredProcCommand(sSp, conn, txn))
+            {
+                cmd.Parameters.Add(CreateParameter("@P_ACTIVITY_ID", activityId));
+                cmd.Parameters.Add(CreateParameter("@P_STATUS", (byte)status));
+                cmd.Parameters.Add(CreateParameter("@P_MODIFIED_BY", modifiedBy));
+
+                var pResult = CreateParameterOut("@OUT_RESULT", DbType.String, 400);
+                cmd.Parameters.Add(pResult);
+
+                cmd.ExecuteNonQuery();
+
+                string result = Validate.getDefaultIfDBNull(pResult.Value, TypeCode.String).ToString();
+                if (result != C.OK)
+                {
+                    throw new DataBaseException(result);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Actualizacion liviana de solo las fechas estimadas (Modulo 5: arrastre de barras en el Gantt).
+        /// </summary>
+        public void UpdateDates(int activityId, DateTime? estimatedStartDate, DateTime? estimatedEndDate, int modifiedBy)
+        {
+            const string sSp = "SP_ACTIVITY_UPDATE_DATES";
+
+            using (var cmd = CreateStoredProcCommand(sSp, conn, txn))
+            {
+                cmd.Parameters.Add(CreateParameter("@P_ACTIVITY_ID", activityId));
+                cmd.Parameters.Add(CreateParameter("@P_ESTIMATED_START_DATE", (object)estimatedStartDate ?? DBNull.Value));
+                cmd.Parameters.Add(CreateParameter("@P_ESTIMATED_END_DATE", (object)estimatedEndDate ?? DBNull.Value));
+                cmd.Parameters.Add(CreateParameter("@P_MODIFIED_BY", modifiedBy));
+
+                var pResult = CreateParameterOut("@OUT_RESULT", DbType.String, 400);
+                cmd.Parameters.Add(pResult);
+
+                cmd.ExecuteNonQuery();
+
+                string result = Validate.getDefaultIfDBNull(pResult.Value, TypeCode.String).ToString();
+                if (result != C.OK)
+                {
+                    throw new DataBaseException(result);
+                }
+            }
+        }
+
         public void Delete(int activityId, int modifiedBy)
         {
             const string sSp = "SP_ACTIVITY_DELETE";

@@ -90,6 +90,28 @@ namespace Aelbry.BL
             return createdIds;
         }
 
+        /// <summary>
+        /// Modulo 5: cambio de estado por drag&amp;drop en el tablero Kanban.
+        /// </summary>
+        public void UpdateStatus(int activityId, ActivityStatus status, int modifiedBy)
+        {
+            using (var dal = ActivityDAL.Instance)
+            {
+                dal.UpdateStatus(activityId, status, modifiedBy);
+            }
+        }
+
+        /// <summary>
+        /// Modulo 5: reprogramacion por arrastre de barras en el Gantt.
+        /// </summary>
+        public void UpdateDates(int activityId, DateTime? estimatedStartDate, DateTime? estimatedEndDate, int modifiedBy)
+        {
+            using (var dal = ActivityDAL.Instance)
+            {
+                dal.UpdateDates(activityId, estimatedStartDate, estimatedEndDate, modifiedBy);
+            }
+        }
+
         public void Update(Activity activity)
         {
             using (var dal = ActivityDAL.Instance)
@@ -203,6 +225,53 @@ namespace Aelbry.BL
             }
 
             return newId;
+        }
+
+        /// <summary>
+        /// Camino critico (Modulo 5, Gantt) de todas las actividades del proyecto, asumiendo
+        /// dependencias Fin-a-Inicio. La duracion se toma de las fechas estimadas si existen,
+        /// o se aproxima desde las horas estimadas (8h = 1 dia).
+        /// </summary>
+        public List<ActivityCriticalPathInfo> GetCriticalPath(int projectId)
+        {
+            using (var dal = ActivityDAL.Instance)
+            {
+                var activities = dal.GetFlatByProject(projectId);
+
+                var nodes = activities.Select(a => new CriticalPathCalculator.ActivityNode
+                {
+                    ActivityId = a.ActivityId,
+                    Duration = EstimateDurationInDays(a),
+                    PredecessorIds = dal.GetDependencies(a.ActivityId).Select(d => d.DependsOnActivityId).ToList(),
+                }).ToList();
+
+                return CriticalPathCalculator.Calculate(nodes).Select(r => new ActivityCriticalPathInfo
+                {
+                    ActivityId = r.ActivityId,
+                    EarlyStart = r.EarlyStart,
+                    EarlyFinish = r.EarlyFinish,
+                    LateStart = r.LateStart,
+                    LateFinish = r.LateFinish,
+                    Slack = r.Slack,
+                    IsCritical = r.IsCritical,
+                }).ToList();
+            }
+        }
+
+        private static decimal EstimateDurationInDays(Activity activity)
+        {
+            if (activity.EstimatedStartDate.HasValue && activity.EstimatedEndDate.HasValue)
+            {
+                decimal days = (decimal)(activity.EstimatedEndDate.Value - activity.EstimatedStartDate.Value).TotalDays;
+                return days > 0 ? days : 1m;
+            }
+
+            if (activity.EstimatedHours > 0)
+            {
+                return Math.Max(1m, Math.Round(activity.EstimatedHours / 8m, 2));
+            }
+
+            return 1m;
         }
 
         public List<ActivityParticipant> GetParticipants(int activityId)

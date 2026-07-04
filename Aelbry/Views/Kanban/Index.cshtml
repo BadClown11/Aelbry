@@ -1,0 +1,43 @@
+@{
+    ViewData["Title"] = "Tablero Kanban";
+}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4>Tablero Kanban</h4>
+    <div class="d-flex gap-2">
+        <input type="number" id="filterProjectId" class="form-control form-control-sm" placeholder="ID de proyecto" style="width: 160px" />
+        <button class="btn btn-outline-secondary btn-sm" onclick="Kanban.loadAll()">Buscar</button>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body d-flex gap-3 flex-wrap align-items-end">
+        <div>
+            <label class="form-label small mb-0">Responsable (ID)</label>
+            <input type="number" class="form-control form-control-sm" id="filterUserId" style="width: 140px" onchange="Kanban.render()" />
+        </div>
+        <div>
+            <label class="form-label small mb-0">Etiqueta</label>
+            <select class="form-select form-select-sm" id="filterTagId" style="width: 160px" onchange="Kanban.render()">
+                <option value="">Todas</option>
+            </select>
+        </div>
+        <div>
+            <label class="form-label small mb-0">Prioridad</label>
+            <select class="form-select form-select-sm" id="filterPriority" style="width: 140px" onchange="Kanban.render()">
+                <option value="">Todas</option>
+                <option value="1">Baja</option>
+                <option value="2">Media</option>
+                <option value="3">Alta</option>
+                <option value="4">Critica</option>
+            </select>
+        </div>
+        <button class="btn btn-outline-secondary btn-sm" onclick="Kanban.clearFilters()">Limpiar filtros</button>
+    </div>
+</div>
+
+<div id="kanbanBoard" class="d-flex gap-3" style="overflow-x: auto;"></div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+    <script src="~/js/kanban.js"></script>
+}
