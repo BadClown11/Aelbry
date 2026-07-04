@@ -1,0 +1,73 @@
+version: "3.8"
+
+# No verificado en este entorno (sandbox sin Docker); revisar antes del primer despliegue real.
+# Uso:
+#   1. Copiar .env.example a .env y ajustar SA_PASSWORD/JWT_KEY/etc.
+#   2. docker compose up -d
+#   3. La API queda detras de Nginx en http://localhost (puerto 80).
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${SA_PASSWORD}
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -Q 'SELECT 1' || /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -Q 'SELECT 1'"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  db-init:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    depends_on:
+      - sqlserver
+    environment:
+      SQLSERVER_HOST: sqlserver
+      SA_PASSWORD: ${SA_PASSWORD}
+    volumes:
+      - ./database:/scripts:ro
+    entrypoint: ["/bin/bash", "/scripts/docker-init.sh"]
+    restart: "no"
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - db-init
+    # Nginx reenvia TODAS las rutas a /api, incluida /hangfire; como LocalOnlyDashboardAuthorizationFilter
+    # exige loopback, el trafico via Nginx queda bloqueado (falla cerrado, no expone el dashboard
+    # publicamente). Para entrar al Dashboard: "docker compose exec api" no sirve para una UI web,
+    # asi que se recomienda `docker compose port api 8080` + un tunel SSH, o exponer temporalmente
+    # el puerto 8080 del servicio api solo mientras se audita.
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__DefaultConnection: "Server=sqlserver;Database=AelbryDb;User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=True;"
+      Jwt__Key: ${JWT_KEY}
+      Gemini__ApiKey: ${GEMINI_API_KEY}
+      Email__SmtpHost: ${SMTP_HOST}
+      Email__Username: ${SMTP_USERNAME}
+      Email__Password: ${SMTP_PASSWORD}
+    volumes:
+      - api-storage:/app/App_Data/Storage
+      - api-logs:/app/logs
+    expose:
+      - "8080"
+
+  nginx:
+    image: nginx:1.27-alpine
+    depends_on:
+      - api
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+
+volumes:
+  sqlserver-data:
+  api-storage:
+  api-logs:

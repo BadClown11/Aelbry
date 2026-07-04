@@ -1,0 +1,91 @@
+@{
+    ViewData["Title"] = "Auditoria";
+}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4>Bitacora de Auditoria</h4>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <div class="row g-2 align-items-end">
+            <div class="col-md-2">
+                <label class="form-label small mb-0">ID de empresa</label>
+                <input type="number" class="form-control form-control-sm" id="filterCompanyId" />
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small mb-0">Modulo</label>
+                <select class="form-select form-select-sm" id="filterModule">
+                    <option value="">Todos</option>
+                    <option value="USERS">Usuarios</option>
+                    <option value="ROLES">Roles</option>
+                    <option value="PERMISSIONS">Permisos</option>
+                    <option value="COMPANY">Empresas</option>
+                    <option value="PROJECTS">Proyectos</option>
+                    <option value="ACTIVITIES">Actividades</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small mb-0">Usuario (ID, opcional)</label>
+                <input type="number" class="form-control form-control-sm" id="filterUserId" />
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small mb-0">Desde</label>
+                <input type="date" class="form-control form-control-sm" id="filterStartDate" />
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small mb-0">Hasta</label>
+                <input type="date" class="form-control form-control-sm" id="filterEndDate" />
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-primary btn-sm w-100" onclick="AuditLogPage.loadAll()">Buscar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <table class="table table-sm align-middle">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Usuario</th>
+                    <th>IP</th>
+                    <th>Modulo</th>
+                    <th>Accion</th>
+                    <th>Entidad</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="auditRows"></tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal: Detalle -->
+<div class="modal fade" id="detailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Detalle del cambio</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Antes</h6>
+                        <pre id="detailBefore" class="aelbry-scroll" style="max-height: 400px;"></pre>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Despues</h6>
+                        <pre id="detailAfter" class="aelbry-scroll" style="max-height: 400px;"></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/audit-log.js"></script>
+}

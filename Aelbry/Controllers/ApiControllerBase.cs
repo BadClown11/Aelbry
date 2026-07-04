@@ -1,7 +1,10 @@
 using System.Security.Claims;
+using Aelbry.BL;
+using Aelbry.BL.Security;
 using Aelbry.BO.Common;
 using DataService.Common;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Aelbry.Web.Controllers
 {
@@ -70,5 +73,26 @@ namespace Aelbry.Web.Controllers
 
         protected int CurrentUserId =>
             int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
+
+        protected int CurrentCompanyId =>
+            int.Parse(User.FindFirstValue(JwtTokenService.CompanyClaimType) ?? "0");
+
+        protected string CurrentUserName =>
+            $"{User.FindFirstValue(ClaimTypes.GivenName)} {User.FindFirstValue(ClaimTypes.Surname)}".Trim();
+
+        /// <summary>
+        /// Registra una accion sensible en la bitacora de auditoria (Modulo 9). Se llama
+        /// explicitamente desde el subconjunto de acciones instrumentadas (ver Controllers de
+        /// Usuarios/Roles/Empresas/Proyectos/Actividades), nunca automaticamente desde Exec,
+        /// para mantener la cobertura deliberadamente parcial y explicita en cada sitio.
+        /// </summary>
+        protected void Audit(string module, string action, int? entityId = null, object dataBefore = null, object dataAfter = null)
+        {
+            var auditLogBL = HttpContext.RequestServices.GetRequiredService<AuditLogBL>();
+            auditLogBL.Log(CurrentCompanyId, CurrentUserId, CurrentUserName, ClientIp, module, action, entityId, dataBefore, dataAfter);
+        }
+
+        protected static bool WasSuccessful(JsonResult jsonResult) =>
+            jsonResult.Value is Result result && result.result == C.OK;
     }
 }

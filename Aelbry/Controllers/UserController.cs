@@ -40,22 +40,38 @@ namespace Aelbry.Web.Controllers
         [Authorize(Policy = "Permission:USERS_CREATE")]
         public JsonResult Create([FromBody] UserCreateRequest request)
         {
-            return Exec(() =>
+            var result = Exec(() =>
             {
                 request.User.CreatedBy = CurrentUserId;
                 return _userBL.Create(request.User, request.Password);
             });
+
+            if (WasSuccessful(result))
+            {
+                Audit("USERS", "CREATE", request.User.UserId, dataBefore: null, dataAfter: AuditSnapshot(request.User));
+            }
+
+            return result;
         }
 
         [HttpPost]
         [Authorize(Policy = "Permission:USERS_EDIT")]
         public JsonResult Update([FromBody] User user)
         {
-            return Exec(() =>
+            var before = _userBL.GetById(user.UserId);
+
+            var result = Exec(() =>
             {
                 user.ModifiedBy = CurrentUserId;
                 _userBL.Update(user);
             });
+
+            if (WasSuccessful(result))
+            {
+                Audit("USERS", "UPDATE", user.UserId, AuditSnapshot(before), AuditSnapshot(user));
+            }
+
+            return result;
         }
 
         [HttpPost]
@@ -68,7 +84,27 @@ namespace Aelbry.Web.Controllers
         [Authorize(Policy = "Permission:USERS_DELETE")]
         public JsonResult Delete(int userId)
         {
-            return Exec(() => _userBL.Delete(userId, CurrentUserId));
+            var before = _userBL.GetById(userId);
+
+            var result = Exec(() => _userBL.Delete(userId, CurrentUserId));
+
+            if (WasSuccessful(result))
+            {
+                Audit("USERS", "DELETE", userId, AuditSnapshot(before), dataAfter: null);
+            }
+
+            return result;
+        }
+
+        // Nunca se persiste PasswordHash en la bitacora de auditoria, aunque sea un hash.
+        private static object AuditSnapshot(User user)
+        {
+            if (user == null)
+            {
+                return null;
+            }
+
+            return new { user.UserId, user.CompanyId, user.Email, user.FirstName, user.LastName, user.JobTitle, user.IsActive };
         }
 
         [HttpGet]

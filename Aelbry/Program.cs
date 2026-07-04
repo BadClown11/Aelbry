@@ -14,8 +14,14 @@ using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog((context, services, config) => config
+    .ReadFrom.Configuration(context.Configuration)
+    .ReadFrom.Services(services)
+    .Enrich.FromLogContext());
 
 builder.Services.AddControllersWithViews();
 
@@ -37,6 +43,7 @@ builder.Services.AddScoped<AutomationRuleBL>();
 builder.Services.AddScoped<ReportBL>();
 builder.Services.AddScoped<ActivityBL>();
 builder.Services.AddScoped<TimeEntryBL>();
+builder.Services.AddScoped<AuditLogBL>();
 
 builder.Services.Configure<GeminiOptions>(builder.Configuration.GetSection(GeminiOptions.SectionName));
 builder.Services.AddHttpClient<IActivitySuggestionService, GeminiActivitySuggestionService>();
@@ -109,6 +116,8 @@ builder.Services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
+
+app.UseSerilogRequestLogging();
 
 if (!app.Environment.IsDevelopment())
 {

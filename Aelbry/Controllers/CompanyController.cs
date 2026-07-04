@@ -42,29 +42,54 @@ namespace Aelbry.Web.Controllers
         [Authorize(Policy = "Permission:COMPANY_MANAGE")]
         public JsonResult Create([FromBody] Company company)
         {
-            return Exec(() =>
+            var result = Exec(() =>
             {
                 company.CreatedBy = CurrentUserId;
                 return _companyBL.Create(company);
             });
+
+            if (WasSuccessful(result))
+            {
+                Audit("COMPANY", "CREATE", company.CompanyId, dataBefore: null, dataAfter: company);
+            }
+
+            return result;
         }
 
         [HttpPost]
         [Authorize(Policy = "Permission:COMPANY_MANAGE")]
         public JsonResult Update([FromBody] Company company)
         {
-            return Exec(() =>
+            var before = _companyBL.GetById(company.CompanyId);
+
+            var result = Exec(() =>
             {
                 company.ModifiedBy = CurrentUserId;
                 _companyBL.Update(company);
             });
+
+            if (WasSuccessful(result))
+            {
+                Audit("COMPANY", "UPDATE", company.CompanyId, before, company);
+            }
+
+            return result;
         }
 
         [HttpPost]
         [Authorize(Policy = "Permission:COMPANY_MANAGE")]
         public JsonResult Delete(int companyId)
         {
-            return Exec(() => _companyBL.Delete(companyId, CurrentUserId));
+            var before = _companyBL.GetById(companyId);
+
+            var result = Exec(() => _companyBL.Delete(companyId, CurrentUserId));
+
+            if (WasSuccessful(result))
+            {
+                Audit("COMPANY", "DELETE", companyId, before, dataAfter: null);
+            }
+
+            return result;
         }
     }
 }

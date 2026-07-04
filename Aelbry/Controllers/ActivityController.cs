@@ -79,7 +79,16 @@ namespace Aelbry.Web.Controllers
         [Authorize(Policy = "Permission:ACTIVITIES_EDIT")]
         public JsonResult UpdateStatus(int activityId, ActivityStatus status)
         {
-            return Exec(() => _activityBL.UpdateStatus(activityId, status, CurrentUserId));
+            var before = _activityBL.GetById(activityId);
+
+            var result = Exec(() => _activityBL.UpdateStatus(activityId, status, CurrentUserId));
+
+            if (WasSuccessful(result))
+            {
+                Audit("ACTIVITIES", "STATUS_CHANGE", activityId, new { before?.Status }, new { status });
+            }
+
+            return result;
         }
 
         /// <summary>

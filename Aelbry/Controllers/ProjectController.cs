@@ -40,29 +40,54 @@ namespace Aelbry.Web.Controllers
         [Authorize(Policy = "Permission:PROJECTS_CREATE")]
         public JsonResult Create([FromBody] Project project)
         {
-            return Exec(() =>
+            var result = Exec(() =>
             {
                 project.CreatedBy = CurrentUserId;
                 return _projectBL.Create(project);
             });
+
+            if (WasSuccessful(result))
+            {
+                Audit("PROJECTS", "CREATE", project.ProjectId, dataBefore: null, dataAfter: project);
+            }
+
+            return result;
         }
 
         [HttpPost]
         [Authorize(Policy = "Permission:PROJECTS_EDIT")]
         public JsonResult Update([FromBody] Project project)
         {
-            return Exec(() =>
+            var before = _projectBL.GetById(project.ProjectId);
+
+            var result = Exec(() =>
             {
                 project.ModifiedBy = CurrentUserId;
                 _projectBL.Update(project);
             });
+
+            if (WasSuccessful(result))
+            {
+                Audit("PROJECTS", "UPDATE", project.ProjectId, before, project);
+            }
+
+            return result;
         }
 
         [HttpPost]
         [Authorize(Policy = "Permission:PROJECTS_DELETE")]
         public JsonResult Delete(int projectId)
         {
-            return Exec(() => _projectBL.Delete(projectId, CurrentUserId));
+            var before = _projectBL.GetById(projectId);
+
+            var result = Exec(() => _projectBL.Delete(projectId, CurrentUserId));
+
+            if (WasSuccessful(result))
+            {
+                Audit("PROJECTS", "DELETE", projectId, before, dataAfter: null);
+            }
+
+            return result;
         }
 
         [HttpGet]
