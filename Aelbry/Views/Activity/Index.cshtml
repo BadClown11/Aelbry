@@ -1,0 +1,220 @@
+@{
+    ViewData["Title"] = "Actividades";
+}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4>Actividades (WBS)</h4>
+    <div class="d-flex gap-2">
+        <input type="number" id="filterProjectId" class="form-control form-control-sm" placeholder="ID de proyecto" style="width: 160px" />
+        <button class="btn btn-outline-secondary btn-sm" onclick="Activities.loadAll()">Buscar</button>
+        <button class="btn btn-primary btn-sm" onclick="Activities.openCreate(null)">Nueva actividad raiz</button>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>Codigo</th>
+                    <th>Nombre</th>
+                    <th>Estado</th>
+                    <th>Prioridad</th>
+                    <th>Responsable</th>
+                    <th>Peso</th>
+                    <th>Avance</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="activityRows"></tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal: Actividad -->
+<div class="modal fade" id="activityModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="activityModalTitle">Actividad</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="activityId" />
+                <input type="hidden" id="activityParentId" />
+                <div class="row">
+                    <div class="col-md-8 mb-2">
+                        <label class="form-label">Nombre</label>
+                        <input class="form-control" id="activityName" />
+                    </div>
+                    <div class="col-md-2 mb-2">
+                        <label class="form-label">Color</label>
+                        <input type="color" class="form-control form-control-color" id="activityColor" value="#4C6EF5" />
+                    </div>
+                    <div class="col-md-2 mb-2">
+                        <label class="form-label">Peso</label>
+                        <input type="number" step="0.01" class="form-control" id="activityWeight" value="1" />
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">Descripcion</label>
+                    <textarea class="form-control" id="activityDescription"></textarea>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 mb-2">
+                        <label class="form-label">Categoria</label>
+                        <input class="form-control" id="activityCategory" />
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <label class="form-label">Estado</label>
+                        <select class="form-select" id="activityStatus">
+                            <option value="1">Pendiente</option>
+                            <option value="2">En Progreso</option>
+                            <option value="3">Bloqueada</option>
+                            <option value="4">Completada</option>
+                            <option value="5">Cancelada</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <label class="form-label">Prioridad</label>
+                        <select class="form-select" id="activityPriority">
+                            <option value="1">Baja</option>
+                            <option value="2" selected>Media</option>
+                            <option value="3">Alta</option>
+                            <option value="4">Critica</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label">Responsable (ID de usuario)</label>
+                        <input type="number" class="form-control" id="activityResponsibleId" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-3 mb-2">
+                        <label class="form-label">Fecha estimada inicio</label>
+                        <input type="date" class="form-control" id="activityEstStart" />
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <label class="form-label">Fecha estimada fin</label>
+                        <input type="date" class="form-control" id="activityEstEnd" />
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <label class="form-label">Fecha real inicio</label>
+                        <input type="date" class="form-control" id="activityActualStart" />
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <label class="form-label">Fecha real fin</label>
+                        <input type="date" class="form-control" id="activityActualEnd" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label">Horas estimadas</label>
+                        <input type="number" step="0.01" class="form-control" id="activityEstimatedHours" value="0" />
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label">Horas trabajadas</label>
+                        <input type="number" step="0.01" class="form-control" id="activityWorkedHours" value="0" />
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button class="btn btn-primary" onclick="Activities.save()">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Checklist -->
+<div class="modal fade" id="checklistModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Checklist</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="checklistActivityId" />
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" id="newChecklistText" placeholder="Nuevo punto del checklist" />
+                    <button class="btn btn-outline-primary" onclick="Activities.addChecklistItem()">Agregar</button>
+                </div>
+                <ul class="list-group" id="checklistRows"></ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Dependencias -->
+<div class="modal fade" id="dependenciesModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Dependencias (bloqueos)</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="dependenciesActivityId" />
+                <div class="row mb-3">
+                    <div class="col-5">
+                        <input type="number" class="form-control" id="newDependsOnActivityId" placeholder="ID actividad predecesora" />
+                    </div>
+                    <div class="col-5">
+                        <select class="form-select" id="newDependencyType">
+                            <option value="1">Fin a Inicio</option>
+                            <option value="2">Inicio a Inicio</option>
+                            <option value="3">Fin a Fin</option>
+                            <option value="4">Inicio a Fin</option>
+                        </select>
+                    </div>
+                    <div class="col-2">
+                        <button class="btn btn-outline-primary w-100" onclick="Activities.addDependency()">+</button>
+                    </div>
+                </div>
+                <ul class="list-group" id="dependencyRows"></ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Participantes -->
+<div class="modal fade" id="participantsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Participantes</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="participantsActivityId" />
+                <div class="input-group mb-3">
+                    <input type="number" class="form-control" id="newParticipantUserId" placeholder="ID de usuario" />
+                    <button class="btn btn-outline-primary" onclick="Activities.addParticipant()">Agregar</button>
+                </div>
+                <ul class="list-group" id="participantRows"></ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Etiquetas -->
+<div class="modal fade" id="activityTagsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Etiquetas de la actividad</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="activityTagsActivityId" />
+                <div id="activityTagsChecklist"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/activities.js"></script>
+}

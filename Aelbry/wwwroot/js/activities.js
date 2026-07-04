@@ -1,0 +1,351 @@
+window.Activities = (function () {
+    const STATUS_LABELS = { 1: 'Pendiente', 2: 'En Progreso', 3: 'Bloqueada', 4: 'Completada', 5: 'Cancelada' };
+    const PRIORITY_LABELS = { 1: 'Baja', 2: 'Media', 3: 'Alta', 4: 'Critica' };
+    const DEPENDENCY_LABELS = { 1: 'Fin a Inicio', 2: 'Inicio a Inicio', 3: 'Fin a Fin', 4: 'Inicio a Fin' };
+
+    let activityModal, checklistModal, dependenciesModal, participantsModal, activityTagsModal;
+    let companyId = null;
+    let companyTags = [];
+
+    function projectId() {
+        return document.getElementById('filterProjectId').value;
+    }
+
+    async function loadAll() {
+        const pid = projectId();
+        if (!pid) return;
+
+        const projectResult = await Aelbry.api.get(`/Project/GetById?projectId=${pid}`);
+        if (projectResult.result === 'OK') {
+            companyId = projectResult.data.companyId;
+            const tagsResult = await Aelbry.api.get(`/Tag/GetByCompany?companyId=${companyId}`);
+            companyTags = tagsResult.result === 'OK' ? tagsResult.data : [];
+        }
+
+        const result = await Aelbry.api.get(`/Activity/GetTreeByProject?projectId=${pid}`);
+        const rows = document.getElementById('activityRows');
+        rows.innerHTML = '';
+
+        if (result.result !== 'OK') return;
+
+        result.data.forEach((a) => renderActivityRow(rows, a, 0));
+    }
+
+    function renderActivityRow(container, a, depth) {
+        const tr = document.createElement('tr');
+        const indent = '&nbsp;&nbsp;&nbsp;&nbsp;'.repeat(depth) + (depth > 0 ? '&#8627; ' : '');
+        tr.innerHTML = `
+            <td><span class="badge" style="background-color:${a.colorHex}">${a.code}</span></td>
+            <td>${indent}${a.name}</td>
+            <td>${STATUS_LABELS[a.status] ?? a.status}</td>
+            <td>${PRIORITY_LABELS[a.priority] ?? a.priority}</td>
+            <td>${a.responsibleName ?? ''}</td>
+            <td>${a.weight}</td>
+            <td>${a.progressPercentage ?? 0}%</td>
+            <td class="text-end text-nowrap">
+                <button class="btn btn-sm btn-outline-secondary" onclick="Activities.openCreate(${a.activityId})">+ Sub</button>
+                <button class="btn btn-sm btn-outline-secondary" onclick="Activities.openChecklist(${a.activityId})">Checklist</button>
+                <button class="btn btn-sm btn-outline-secondary" onclick="Activities.openDependencies(${a.activityId})">Dependencias</button>
+                <button class="btn btn-sm btn-outline-secondary" onclick="Activities.openParticipants(${a.activityId})">Participantes</button>
+                <button class="btn btn-sm btn-outline-secondary" onclick="Activities.openActivityTags(${a.activityId})">Etiquetas</button>
+                <button class="btn btn-sm btn-outline-primary" onclick="Activities.openEdit(${a.activityId})">Editar</button>
+                <button class="btn btn-sm btn-outline-danger" onclick="Activities.remove(${a.activityId})">Eliminar</button>
+            </td>`;
+        container.appendChild(tr);
+
+        (a.children ?? []).forEach((child) => renderActivityRow(container, child, depth + 1));
+    }
+
+    // ---- Actividad ----
+    function openCreate(parentActivityId) {
+        document.getElementById('activityId').value = '';
+        document.getElementById('activityParentId').value = parentActivityId ?? '';
+        document.getElementById('activityModalTitle').textContent = parentActivityId ? 'Nueva subactividad' : 'Nueva actividad raiz';
+        document.getElementById('activityName').value = '';
+        document.getElementById('activityColor').value = '#4C6EF5';
+        document.getElementById('activityWeight').value = '1';
+        document.getElementById('activityDescription').value = '';
+        document.getElementById('activityCategory').value = '';
+        document.getElementById('activityStatus').value = '1';
+        document.getElementById('activityPriority').value = '2';
+        document.getElementById('activityResponsibleId').value = '';
+        document.getElementById('activityEstStart').value = '';
+        document.getElementById('activityEstEnd').value = '';
+        document.getElementById('activityActualStart').value = '';
+        document.getElementById('activityActualEnd').value = '';
+        document.getElementById('activityEstimatedHours').value = '0';
+        document.getElementById('activityWorkedHours').value = '0';
+
+        activityModal = activityModal || new bootstrap.Modal(document.getElementById('activityModal'));
+        activityModal.show();
+    }
+
+    async function openEdit(activityId) {
+        const result = await Aelbry.api.get(`/Activity/GetById?activityId=${activityId}`);
+        if (result.result !== 'OK') { alert(result.result); return; }
+
+        const a = result.data;
+        document.getElementById('activityId').value = a.activityId;
+        document.getElementById('activityParentId').value = a.parentActivityId ?? '';
+        document.getElementById('activityModalTitle').textContent = `Editar ${a.code}`;
+        document.getElementById('activityName').value = a.name;
+        document.getElementById('activityColor').value = a.colorHex;
+        document.getElementById('activityWeight').value = a.weight;
+        document.getElementById('activityDescription').value = a.description ?? '';
+        document.getElementById('activityCategory').value = a.category ?? '';
+        document.getElementById('activityStatus').value = a.status;
+        document.getElementById('activityPriority').value = a.priority;
+        document.getElementById('activityResponsibleId').value = a.responsibleUserId;
+        document.getElementById('activityEstStart').value = a.estimatedStartDate ? a.estimatedStartDate.substring(0, 10) : '';
+        document.getElementById('activityEstEnd').value = a.estimatedEndDate ? a.estimatedEndDate.substring(0, 10) : '';
+        document.getElementById('activityActualStart').value = a.actualStartDate ? a.actualStartDate.substring(0, 10) : '';
+        document.getElementById('activityActualEnd').value = a.actualEndDate ? a.actualEndDate.substring(0, 10) : '';
+        document.getElementById('activityEstimatedHours').value = a.estimatedHours;
+        document.getElementById('activityWorkedHours').value = a.workedHours;
+
+        activityModal = activityModal || new bootstrap.Modal(document.getElementById('activityModal'));
+        activityModal.show();
+    }
+
+    async function save() {
+        const id = document.getElementById('activityId').value;
+        const parentId = document.getElementById('activityParentId').value;
+
+        const payload = {
+            activityId: id ? parseInt(id, 10) : 0,
+            projectId: parseInt(projectId(), 10),
+            parentActivityId: parentId ? parseInt(parentId, 10) : null,
+            name: document.getElementById('activityName').value,
+            colorHex: document.getElementById('activityColor').value,
+            weight: parseFloat(document.getElementById('activityWeight').value || '1'),
+            description: document.getElementById('activityDescription').value,
+            category: document.getElementById('activityCategory').value,
+            status: parseInt(document.getElementById('activityStatus').value, 10),
+            priority: parseInt(document.getElementById('activityPriority').value, 10),
+            responsibleUserId: parseInt(document.getElementById('activityResponsibleId').value, 10),
+            estimatedStartDate: document.getElementById('activityEstStart').value || null,
+            estimatedEndDate: document.getElementById('activityEstEnd').value || null,
+            actualStartDate: document.getElementById('activityActualStart').value || null,
+            actualEndDate: document.getElementById('activityActualEnd').value || null,
+            estimatedHours: parseFloat(document.getElementById('activityEstimatedHours').value || '0'),
+            workedHours: parseFloat(document.getElementById('activityWorkedHours').value || '0'),
+            isActive: true,
+        };
+
+        const result = id
+            ? await Aelbry.api.post('/Activity/Update', payload)
+            : await Aelbry.api.post('/Activity/Create', payload);
+
+        if (result.result === 'OK') {
+            bootstrap.Modal.getInstance(document.getElementById('activityModal'))?.hide();
+            loadAll();
+        } else {
+            alert(result.result);
+        }
+    }
+
+    async function remove(activityId) {
+        if (!confirm('Eliminar esta actividad?')) return;
+        const result = await Aelbry.api.post(`/Activity/Delete?activityId=${activityId}`);
+        if (result.result === 'OK') loadAll();
+        else alert(result.result);
+    }
+
+    // ---- Checklist ----
+    async function openChecklist(activityId) {
+        document.getElementById('checklistActivityId').value = activityId;
+        await reloadChecklist();
+        checklistModal = checklistModal || new bootstrap.Modal(document.getElementById('checklistModal'));
+        checklistModal.show();
+    }
+
+    async function reloadChecklist() {
+        const activityId = document.getElementById('checklistActivityId').value;
+        const result = await Aelbry.api.get(`/Activity/GetChecklistItems?activityId=${activityId}`);
+        const rows = document.getElementById('checklistRows');
+        rows.innerHTML = '';
+
+        if (result.result !== 'OK') return;
+
+        result.data.forEach((item) => {
+            const li = document.createElement('li');
+            li.className = 'list-group-item d-flex justify-content-between align-items-center';
+            li.innerHTML = `
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" ${item.isChecked ? 'checked' : ''}
+                           onchange="Activities.toggleChecklistItem(${item.checklistItemId}, this.checked)" />
+                    <label class="form-check-label ${item.isChecked ? 'text-decoration-line-through text-muted' : ''}">${item.text}</label>
+                </div>
+                <button class="btn btn-sm btn-outline-danger" onclick="Activities.deleteChecklistItem(${item.checklistItemId})">Quitar</button>`;
+            rows.appendChild(li);
+        });
+    }
+
+    async function addChecklistItem() {
+        const activityId = document.getElementById('checklistActivityId').value;
+        const text = document.getElementById('newChecklistText').value;
+        if (!text) return;
+
+        const result = await Aelbry.api.post(`/Activity/AddChecklistItem?activityId=${activityId}&text=${encodeURIComponent(text)}&sequence=0`);
+        if (result.result === 'OK') {
+            document.getElementById('newChecklistText').value = '';
+            await reloadChecklist();
+            loadAll();
+        } else {
+            alert(result.result);
+        }
+    }
+
+    async function toggleChecklistItem(checklistItemId, isChecked) {
+        const activityId = document.getElementById('checklistActivityId').value;
+        const result = await Aelbry.api.post(`/Activity/ToggleChecklistItem?checklistItemId=${checklistItemId}&activityId=${activityId}&isChecked=${isChecked}`);
+        if (result.result === 'OK') {
+            await reloadChecklist();
+            loadAll();
+        } else {
+            alert(result.result);
+        }
+    }
+
+    async function deleteChecklistItem(checklistItemId) {
+        const activityId = document.getElementById('checklistActivityId').value;
+        const result = await Aelbry.api.post(`/Activity/DeleteChecklistItem?checklistItemId=${checklistItemId}&activityId=${activityId}`);
+        if (result.result === 'OK') {
+            await reloadChecklist();
+            loadAll();
+        } else {
+            alert(result.result);
+        }
+    }
+
+    // ---- Dependencias ----
+    async function openDependencies(activityId) {
+        document.getElementById('dependenciesActivityId').value = activityId;
+        await reloadDependencies();
+        dependenciesModal = dependenciesModal || new bootstrap.Modal(document.getElementById('dependenciesModal'));
+        dependenciesModal.show();
+    }
+
+    async function reloadDependencies() {
+        const activityId = document.getElementById('dependenciesActivityId').value;
+        const result = await Aelbry.api.get(`/Activity/GetDependencies?activityId=${activityId}`);
+        const rows = document.getElementById('dependencyRows');
+        rows.innerHTML = '';
+
+        if (result.result !== 'OK') return;
+
+        result.data.forEach((d) => {
+            const li = document.createElement('li');
+            li.className = 'list-group-item d-flex justify-content-between align-items-center';
+            li.innerHTML = `
+                <span>${d.dependsOnActivityName} <small class="text-muted">(${DEPENDENCY_LABELS[d.dependencyType] ?? d.dependencyType})</small></span>
+                <button class="btn btn-sm btn-outline-danger" onclick="Activities.removeDependency(${d.activityDependencyId})">Quitar</button>`;
+            rows.appendChild(li);
+        });
+    }
+
+    async function addDependency() {
+        const activityId = document.getElementById('dependenciesActivityId').value;
+        const dependsOnActivityId = document.getElementById('newDependsOnActivityId').value;
+        const dependencyType = document.getElementById('newDependencyType').value;
+        if (!dependsOnActivityId) return;
+
+        const result = await Aelbry.api.post(`/Activity/AddDependency?activityId=${activityId}&dependsOnActivityId=${dependsOnActivityId}&dependencyType=${dependencyType}`);
+        if (result.result === 'OK') {
+            document.getElementById('newDependsOnActivityId').value = '';
+            await reloadDependencies();
+        } else {
+            alert(result.result);
+        }
+    }
+
+    async function removeDependency(activityDependencyId) {
+        const result = await Aelbry.api.post(`/Activity/RemoveDependency?activityDependencyId=${activityDependencyId}`);
+        if (result.result === 'OK') await reloadDependencies();
+        else alert(result.result);
+    }
+
+    // ---- Participantes ----
+    async function openParticipants(activityId) {
+        document.getElementById('participantsActivityId').value = activityId;
+        await reloadParticipants();
+        participantsModal = participantsModal || new bootstrap.Modal(document.getElementById('participantsModal'));
+        participantsModal.show();
+    }
+
+    async function reloadParticipants() {
+        const activityId = document.getElementById('participantsActivityId').value;
+        const result = await Aelbry.api.get(`/Activity/GetParticipants?activityId=${activityId}`);
+        const rows = document.getElementById('participantRows');
+        rows.innerHTML = '';
+
+        if (result.result !== 'OK') return;
+
+        result.data.forEach((m) => {
+            const li = document.createElement('li');
+            li.className = 'list-group-item d-flex justify-content-between align-items-center';
+            li.innerHTML = `
+                <span>${m.firstName} ${m.lastName} <small class="text-muted">${m.email}</small></span>
+                <button class="btn btn-sm btn-outline-danger" onclick="Activities.removeParticipant(${m.userId})">Quitar</button>`;
+            rows.appendChild(li);
+        });
+    }
+
+    async function addParticipant() {
+        const activityId = document.getElementById('participantsActivityId').value;
+        const userId = document.getElementById('newParticipantUserId').value;
+        if (!userId) return;
+
+        const result = await Aelbry.api.post(`/Activity/AddParticipant?activityId=${activityId}&userId=${userId}`);
+        if (result.result === 'OK') {
+            document.getElementById('newParticipantUserId').value = '';
+            await reloadParticipants();
+        } else {
+            alert(result.result);
+        }
+    }
+
+    async function removeParticipant(userId) {
+        const activityId = document.getElementById('participantsActivityId').value;
+        const result = await Aelbry.api.post(`/Activity/RemoveParticipant?activityId=${activityId}&userId=${userId}`);
+        if (result.result === 'OK') await reloadParticipants();
+        else alert(result.result);
+    }
+
+    // ---- Etiquetas ----
+    async function openActivityTags(activityId) {
+        document.getElementById('activityTagsActivityId').value = activityId;
+
+        const result = await Aelbry.api.get(`/Activity/GetTags?activityId=${activityId}`);
+        const activeTagIds = result.result === 'OK' ? result.data.map((t) => t.tagId) : [];
+
+        const container = document.getElementById('activityTagsChecklist');
+        container.innerHTML = companyTags.map((t) => `
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="atag_${t.tagId}"
+                       ${activeTagIds.includes(t.tagId) ? 'checked' : ''}
+                       onchange="Activities.toggleActivityTag(${t.tagId}, this.checked)" />
+                <label class="form-check-label" for="atag_${t.tagId}">
+                    <span class="badge" style="background-color:${t.colorHex}">${t.name}</span>
+                </label>
+            </div>`).join('');
+
+        activityTagsModal = activityTagsModal || new bootstrap.Modal(document.getElementById('activityTagsModal'));
+        activityTagsModal.show();
+    }
+
+    async function toggleActivityTag(tagId, checked) {
+        const activityId = document.getElementById('activityTagsActivityId').value;
+        const url = checked ? '/Activity/AddTag' : '/Activity/RemoveTag';
+        const result = await Aelbry.api.post(`${url}?activityId=${activityId}&tagId=${tagId}`);
+        if (result.result !== 'OK') alert(result.result);
+    }
+
+    return {
+        loadAll, openCreate, openEdit, save, remove,
+        openChecklist, addChecklistItem, toggleChecklistItem, deleteChecklistItem,
+        openDependencies, addDependency, removeDependency,
+        openParticipants, addParticipant, removeParticipant,
+        openActivityTags, toggleActivityTag,
+    };
+})();

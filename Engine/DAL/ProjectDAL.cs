@@ -137,6 +137,32 @@ namespace Aelbry.DAL
             }
         }
 
+        /// <summary>
+        /// SP dedicado usado por el servicio de recalculo de avance del Modulo 3 (ActivityBL).
+        /// </summary>
+        public void UpdateProgress(int projectId, decimal progressPercentage, int modifiedBy)
+        {
+            const string sSp = "SP_PROJECT_UPDATE_PROGRESS";
+
+            using (var cmd = CreateStoredProcCommand(sSp, conn, txn))
+            {
+                cmd.Parameters.Add(CreateParameter("@P_PROJECT_ID", projectId));
+                cmd.Parameters.Add(CreateParameter("@P_PROGRESS_PERCENTAGE", progressPercentage));
+                cmd.Parameters.Add(CreateParameter("@P_MODIFIED_BY", modifiedBy));
+
+                var pResult = CreateParameterOut("@OUT_RESULT", DbType.String, 400);
+                cmd.Parameters.Add(pResult);
+
+                cmd.ExecuteNonQuery();
+
+                string result = Validate.getDefaultIfDBNull(pResult.Value, TypeCode.String).ToString();
+                if (result != C.OK)
+                {
+                    throw new DataBaseException(result);
+                }
+            }
+        }
+
         public void Delete(int projectId, int modifiedBy)
         {
             const string sSp = "SP_PROJECT_DELETE";

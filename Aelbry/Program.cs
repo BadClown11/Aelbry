@@ -23,6 +23,7 @@ builder.Services.AddScoped<ProjectBL>();
 builder.Services.AddScoped<ProjectStatusBL>();
 builder.Services.AddScoped<TagBL>();
 builder.Services.AddScoped<ProjectTemplateBL>();
+builder.Services.AddScoped<ActivityBL>();
 
 var jwtSection = builder.Configuration.GetSection(JwtOptions.SectionName);
 
