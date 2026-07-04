@@ -19,6 +19,10 @@ builder.Services.AddScoped<TeamBL>();
 builder.Services.AddScoped<UserBL>();
 builder.Services.AddScoped<RoleBL>();
 builder.Services.AddScoped<AuthBL>();
+builder.Services.AddScoped<ProjectBL>();
+builder.Services.AddScoped<ProjectStatusBL>();
+builder.Services.AddScoped<TagBL>();
+builder.Services.AddScoped<ProjectTemplateBL>();
 
 var jwtSection = builder.Configuration.GetSection(JwtOptions.SectionName);
 
