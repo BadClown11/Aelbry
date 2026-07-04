@@ -91,6 +91,20 @@ namespace Aelbry.BL
         }
 
         /// <summary>
+        /// Modulo 6: recalcula las horas trabajadas de la actividad (agregado desde TimeEntry)
+        /// y dispara la cascada de avance, ya que WorkedHours influye en el % de las hojas.
+        /// </summary>
+        public void UpdateWorkedHours(int activityId, decimal workedHours, int modifiedBy)
+        {
+            using (var dal = ActivityDAL.Instance)
+            {
+                dal.UpdateWorkedHours(activityId, workedHours, modifiedBy);
+            }
+
+            RecalculateProgress(activityId, modifiedBy);
+        }
+
+        /// <summary>
         /// Modulo 5: cambio de estado por drag&amp;drop en el tablero Kanban.
         /// </summary>
         public void UpdateStatus(int activityId, ActivityStatus status, int modifiedBy)

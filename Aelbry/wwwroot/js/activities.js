@@ -3,7 +3,7 @@ window.Activities = (function () {
     const PRIORITY_LABELS = { 1: 'Baja', 2: 'Media', 3: 'Alta', 4: 'Critica' };
     const DEPENDENCY_LABELS = { 1: 'Fin a Inicio', 2: 'Inicio a Inicio', 3: 'Fin a Fin', 4: 'Inicio a Fin' };
 
-    let activityModal, checklistModal, dependenciesModal, participantsModal, activityTagsModal;
+    let activityModal, checklistModal, dependenciesModal, participantsModal, activityTagsModal, timeModal;
     let companyId = null;
     let companyTags = [];
 
@@ -45,6 +45,7 @@ window.Activities = (function () {
             <td class="text-end text-nowrap">
                 <button class="btn btn-sm btn-outline-secondary" onclick="Activities.openCreate(${a.activityId})">+ Sub</button>
                 <button class="btn btn-sm btn-outline-secondary" onclick="Activities.openChecklist(${a.activityId})">Checklist</button>
+                <button class="btn btn-sm btn-outline-secondary" onclick="Activities.openTime(${a.activityId})">Tiempo</button>
                 <button class="btn btn-sm btn-outline-secondary" onclick="Activities.openDependencies(${a.activityId})">Dependencias</button>
                 <button class="btn btn-sm btn-outline-secondary" onclick="Activities.openParticipants(${a.activityId})">Participantes</button>
                 <button class="btn btn-sm btn-outline-secondary" onclick="Activities.openActivityTags(${a.activityId})">Etiquetas</button>
@@ -226,6 +227,70 @@ window.Activities = (function () {
         }
     }
 
+    // ---- Tiempo ----
+    async function openTime(activityId) {
+        document.getElementById('timeActivityId').value = activityId;
+        await reloadTimeControls();
+        await reloadTimeRows();
+        timeModal = timeModal || new bootstrap.Modal(document.getElementById('timeModal'));
+        timeModal.show();
+    }
+
+    async function reloadTimeControls() {
+        const activityId = document.getElementById('timeActivityId').value;
+        const runningResult = await Aelbry.api.get('/TimeEntry/GetRunning');
+        const running = runningResult.result === 'OK' ? runningResult.data : null;
+        const controls = document.getElementById('timeTimerControls');
+
+        if (running && running.activityId === parseInt(activityId, 10)) {
+            controls.innerHTML = `<button class="btn btn-danger btn-sm" onclick="Activities.stopTimer(${running.timeEntryId})">Detener cronometro</button>`;
+        } else {
+            controls.innerHTML = `<button class="btn btn-success btn-sm" onclick="Activities.startTimer(${activityId})">Iniciar cronometro para mi</button>`;
+        }
+    }
+
+    async function startTimer(activityId) {
+        const result = await Aelbry.api.post(`/TimeEntry/Start?activityId=${activityId}`);
+        if (result.result === 'OK') {
+            await reloadTimeControls();
+            await reloadTimeRows();
+        } else {
+            alert(result.result);
+        }
+    }
+
+    async function stopTimer(timeEntryId) {
+        const result = await Aelbry.api.post(`/TimeEntry/Stop?timeEntryId=${timeEntryId}`);
+        if (result.result === 'OK') {
+            await reloadTimeControls();
+            await reloadTimeRows();
+            loadAll();
+        } else {
+            alert(result.result);
+        }
+    }
+
+    async function reloadTimeRows() {
+        const activityId = document.getElementById('timeActivityId').value;
+        const result = await Aelbry.api.get(`/TimeEntry/GetByActivity?activityId=${activityId}`);
+        const rows = document.getElementById('timeRows');
+        rows.innerHTML = '';
+
+        if (result.result !== 'OK') return;
+
+        result.data.forEach((e) => {
+            const li = document.createElement('li');
+            li.className = 'list-group-item';
+            li.innerHTML = `
+                <div class="d-flex justify-content-between">
+                    <span>${e.userName}</span>
+                    <span>${e.durationHours}h ${e.isOvertime ? '<span class="badge text-bg-warning">Extra</span>' : ''}</span>
+                </div>
+                <div class="small text-muted">${new Date(e.startTime).toLocaleString()} ${e.endTime ? '- ' + new Date(e.endTime).toLocaleString() : '(en curso)'}</div>`;
+            rows.appendChild(li);
+        });
+    }
+
     // ---- Dependencias ----
     async function openDependencies(activityId) {
         document.getElementById('dependenciesActivityId').value = activityId;
@@ -352,6 +417,7 @@ window.Activities = (function () {
     return {
         loadAll, openCreate, openEdit, save, remove, duplicate,
         openChecklist, addChecklistItem, toggleChecklistItem, deleteChecklistItem,
+        openTime, startTimer, stopTimer,
         openDependencies, addDependency, removeDependency,
         openParticipants, addParticipant, removeParticipant,
         openActivityTags, toggleActivityTag,

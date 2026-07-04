@@ -26,6 +26,7 @@ builder.Services.AddScoped<ProjectStatusBL>();
 builder.Services.AddScoped<TagBL>();
 builder.Services.AddScoped<ProjectTemplateBL>();
 builder.Services.AddScoped<ActivityBL>();
+builder.Services.AddScoped<TimeEntryBL>();
 
 builder.Services.Configure<GeminiOptions>(builder.Configuration.GetSection(GeminiOptions.SectionName));
 builder.Services.AddHttpClient<IActivitySuggestionService, GeminiActivitySuggestionService>();

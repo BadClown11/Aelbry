@@ -235,6 +235,32 @@ namespace Aelbry.DAL
         }
 
         /// <summary>
+        /// Actualizacion liviana de solo las horas trabajadas (Modulo 6: agregado desde TimeEntry).
+        /// </summary>
+        public void UpdateWorkedHours(int activityId, decimal workedHours, int modifiedBy)
+        {
+            const string sSp = "SP_ACTIVITY_UPDATE_WORKED_HOURS";
+
+            using (var cmd = CreateStoredProcCommand(sSp, conn, txn))
+            {
+                cmd.Parameters.Add(CreateParameter("@P_ACTIVITY_ID", activityId));
+                cmd.Parameters.Add(CreateParameter("@P_WORKED_HOURS", workedHours));
+                cmd.Parameters.Add(CreateParameter("@P_MODIFIED_BY", modifiedBy));
+
+                var pResult = CreateParameterOut("@OUT_RESULT", DbType.String, 400);
+                cmd.Parameters.Add(pResult);
+
+                cmd.ExecuteNonQuery();
+
+                string result = Validate.getDefaultIfDBNull(pResult.Value, TypeCode.String).ToString();
+                if (result != C.OK)
+                {
+                    throw new DataBaseException(result);
+                }
+            }
+        }
+
+        /// <summary>
         /// Actualizacion liviana de solo el estado (Modulo 5: drag&amp;drop del tablero Kanban).
         /// </summary>
         public void UpdateStatus(int activityId, ActivityStatus status, int modifiedBy)

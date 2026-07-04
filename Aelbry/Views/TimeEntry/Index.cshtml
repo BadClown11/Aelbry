@@ -1,0 +1,92 @@
+@{
+    ViewData["Title"] = "Mis Horas";
+}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4>Mis Horas</h4>
+</div>
+
+<!-- Cronometro en vivo -->
+<div class="card mb-3">
+    <div class="card-body">
+        <div id="timerIdle" class="d-flex gap-2 align-items-end">
+            <div>
+                <label class="form-label small mb-0">ID de actividad</label>
+                <input type="number" class="form-control form-control-sm" id="timerActivityId" style="width: 160px" />
+            </div>
+            <button class="btn btn-success btn-sm" onclick="TimeEntries.start()">Iniciar cronometro</button>
+        </div>
+        <div id="timerRunning" class="d-none align-items-center gap-3">
+            <div>
+                <div class="small text-muted" id="timerActivityLabel"></div>
+                <div class="fs-3 fw-bold" id="timerElapsed">00:00:00</div>
+            </div>
+            <button class="btn btn-danger" onclick="TimeEntries.stop()">Detener / Pausar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Registro manual -->
+<div class="card mb-3">
+    <div class="card-body">
+        <h6>Registro manual</h6>
+        <div class="row g-2 align-items-end">
+            <div class="col-md-2">
+                <label class="form-label small mb-0">ID de actividad</label>
+                <input type="number" class="form-control form-control-sm" id="manualActivityId" />
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small mb-0">Fecha</label>
+                <input type="date" class="form-control form-control-sm" id="manualDate" />
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small mb-0">Horas</label>
+                <input type="number" step="0.25" class="form-control form-control-sm" id="manualHours" />
+            </div>
+            <div class="col-md-2 form-check mt-4">
+                <input class="form-check-input" type="checkbox" id="manualOvertime" />
+                <label class="form-check-label small">Hora extra</label>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small mb-0">Notas</label>
+                <input class="form-control form-control-sm" id="manualNotes" />
+            </div>
+            <div class="col-md-1">
+                <button class="btn btn-primary btn-sm w-100" onclick="TimeEntries.createManual()">Registrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Mi log -->
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex gap-2 mb-2 align-items-end">
+            <div>
+                <label class="form-label small mb-0">Desde</label>
+                <input type="date" class="form-control form-control-sm" id="logStartDate" />
+            </div>
+            <div>
+                <label class="form-label small mb-0">Hasta</label>
+                <input type="date" class="form-control form-control-sm" id="logEndDate" />
+            </div>
+            <button class="btn btn-outline-secondary btn-sm" onclick="TimeEntries.loadLog()">Buscar</button>
+        </div>
+        <table class="table table-sm align-middle">
+            <thead>
+                <tr>
+                    <th>Actividad</th>
+                    <th>Inicio</th>
+                    <th>Horas</th>
+                    <th>Tipo</th>
+                    <th>Notas</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="logRows"></tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/time-entries.js"></script>
+}
