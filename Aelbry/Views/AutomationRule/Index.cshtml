@@ -1,0 +1,157 @@
+@{
+    ViewData["Title"] = "Automatizaciones";
+}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4>Automatizaciones</h4>
+    <div class="d-flex gap-2">
+        <input type="number" id="filterCompanyId" class="form-control form-control-sm" placeholder="ID de empresa" style="width: 160px" />
+        <button class="btn btn-outline-secondary btn-sm" onclick="AutomationRules.loadAll()">Buscar</button>
+        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#ruleModal" onclick="AutomationRules.openCreate()">Nueva regla</button>
+    </div>
+</div>
+
+<p class="small text-muted">
+    Ej: "Si Actividad #12 llega al 100% de avance -&gt; cambiar su estado a Completada", o
+    "Si Actividad #12 cambia a Completada -&gt; cambiar Actividad #13 de Bloqueada a Pendiente".
+</p>
+
+<div class="card">
+    <div class="card-body">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Disparador</th>
+                    <th>Accion</th>
+                    <th>Activa</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="ruleRows"></tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal: Regla -->
+<div class="modal fade" id="ruleModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Regla de automatizacion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="ruleId" />
+                <div class="mb-2">
+                    <label class="form-label">Nombre</label>
+                    <input class="form-control" id="ruleName" />
+                </div>
+
+                <hr />
+                <h6>Disparador (Si...)</h6>
+                <div class="mb-2">
+                    <label class="form-label">Tipo de disparador</label>
+                    <select class="form-select" id="triggerType" onchange="AutomationRules.onTriggerTypeChange()">
+                        <option value="1">Avance de Actividad alcanza un umbral</option>
+                        <option value="2">Estado de Actividad cambia a...</option>
+                        <option value="3">Avance de Proyecto alcanza un umbral</option>
+                    </select>
+                </div>
+                <div class="row" id="triggerActivityFields">
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label">ID de actividad disparadora</label>
+                        <input type="number" class="form-control" id="triggerActivityId" />
+                    </div>
+                </div>
+                <div class="row" id="triggerProjectFields">
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label">ID de proyecto disparador</label>
+                        <input type="number" class="form-control" id="triggerProjectId" />
+                    </div>
+                </div>
+                <div class="row" id="triggerThresholdFields">
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label">Umbral de avance (%)</label>
+                        <input type="number" step="0.01" min="0" max="100" class="form-control" id="triggerThresholdPercent" />
+                    </div>
+                </div>
+                <div class="row" id="triggerStatusFields">
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label">Nuevo estado que dispara la regla</label>
+                        <select class="form-select" id="triggerStatus">
+                            <option value="1">Pendiente</option>
+                            <option value="2">En Progreso</option>
+                            <option value="3">Bloqueada</option>
+                            <option value="4">Completada</option>
+                            <option value="5">Cancelada</option>
+                        </select>
+                    </div>
+                </div>
+
+                <hr />
+                <h6>Accion (Entonces...)</h6>
+                <div class="mb-2">
+                    <label class="form-label">Tipo de accion</label>
+                    <select class="form-select" id="actionType" onchange="AutomationRules.onActionTypeChange()">
+                        <option value="1">Cambiar estado de una Actividad</option>
+                        <option value="2">Cambiar estado (flujo) de un Proyecto</option>
+                    </select>
+                </div>
+                <div class="row" id="actionActivityFields">
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label">ID de actividad a modificar</label>
+                        <input type="number" class="form-control" id="actionTargetActivityId" />
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label">Nuevo estado</label>
+                        <select class="form-select" id="actionNewActivityStatus">
+                            <option value="1">Pendiente</option>
+                            <option value="2">En Progreso</option>
+                            <option value="3">Bloqueada</option>
+                            <option value="4">Completada</option>
+                            <option value="5">Cancelada</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row" id="actionProjectFields">
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label">ID de proyecto a modificar</label>
+                        <input type="number" class="form-control" id="actionTargetProjectId" />
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label">ID del nuevo estado de proyecto</label>
+                        <input type="number" class="form-control" id="actionNewProjectStatusId" />
+                    </div>
+                </div>
+
+                <div class="form-check mt-2">
+                    <input class="form-check-input" type="checkbox" id="ruleIsActive" checked />
+                    <label class="form-check-label">Regla activa</label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button class="btn btn-primary" onclick="AutomationRules.save()">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Bitacora -->
+<div class="modal fade" id="logModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Bitacora de ejecucion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <ul class="list-group" id="logRows"></ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/automation-rules.js"></script>
+}

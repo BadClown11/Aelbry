@@ -138,6 +138,33 @@ namespace Aelbry.DAL
         }
 
         /// <summary>
+        /// Actualizacion liviana de solo el estado de flujo de trabajo (Modulo 7: accion
+        /// ChangeProjectStatus de una regla de automatizacion).
+        /// </summary>
+        public void UpdateStatus(int projectId, int projectStatusId, int modifiedBy)
+        {
+            const string sSp = "SP_PROJECT_UPDATE_STATUS";
+
+            using (var cmd = CreateStoredProcCommand(sSp, conn, txn))
+            {
+                cmd.Parameters.Add(CreateParameter("@P_PROJECT_ID", projectId));
+                cmd.Parameters.Add(CreateParameter("@P_PROJECT_STATUS_ID", projectStatusId));
+                cmd.Parameters.Add(CreateParameter("@P_MODIFIED_BY", modifiedBy));
+
+                var pResult = CreateParameterOut("@OUT_RESULT", DbType.String, 400);
+                cmd.Parameters.Add(pResult);
+
+                cmd.ExecuteNonQuery();
+
+                string result = Validate.getDefaultIfDBNull(pResult.Value, TypeCode.String).ToString();
+                if (result != C.OK)
+                {
+                    throw new DataBaseException(result);
+                }
+            }
+        }
+
+        /// <summary>
         /// SP dedicado usado por el servicio de recalculo de avance del Modulo 3 (ActivityBL).
         /// </summary>
         public void UpdateProgress(int projectId, decimal progressPercentage, int modifiedBy)

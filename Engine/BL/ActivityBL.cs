@@ -5,6 +5,13 @@ namespace Aelbry.BL
 {
     public class ActivityBL
     {
+        private readonly AutomationEngineBL _automationEngine;
+
+        public ActivityBL(AutomationEngineBL automationEngine)
+        {
+            _automationEngine = automationEngine;
+        }
+
         public List<Activity> GetTreeByProject(int projectId)
         {
             using (var dal = ActivityDAL.Instance)
@@ -113,6 +120,8 @@ namespace Aelbry.BL
             {
                 dal.UpdateStatus(activityId, status, modifiedBy);
             }
+
+            _automationEngine.CheckActivityStatusChanged(activityId, status, modifiedBy);
         }
 
         /// <summary>
@@ -466,6 +475,7 @@ namespace Aelbry.BL
                     activity.EstimatedHours);
 
             dal.UpdateProgress(activityId, progress, modifiedBy);
+            _automationEngine.CheckActivityProgressThreshold(activityId, activity.ProgressPercentage, progress, modifiedBy);
 
             if (activity.ParentActivityId.HasValue)
             {
@@ -482,10 +492,13 @@ namespace Aelbry.BL
             using (var dal = ActivityDAL.Instance)
             using (var projectDal = ProjectDAL.Instance)
             {
+                decimal previousProgress = projectDal.GetById(projectId)?.ProgressPercentage ?? 0m;
+
                 var roots = dal.GetRootWeightProgressByProject(projectId);
                 decimal progress = ActivityProgressCalculator.CalculateWeightedProgress(roots.Select(r => (r.Weight, r.Progress)));
 
                 projectDal.UpdateProgress(projectId, progress, modifiedBy);
+                _automationEngine.CheckProjectProgressThreshold(projectId, previousProgress, progress, modifiedBy);
             }
         }
 
