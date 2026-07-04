@@ -28,6 +28,7 @@ builder.Services.AddScoped<TagBL>();
 builder.Services.AddScoped<ProjectTemplateBL>();
 builder.Services.AddScoped<AutomationEngineBL>();
 builder.Services.AddScoped<AutomationRuleBL>();
+builder.Services.AddScoped<ReportBL>();
 builder.Services.AddScoped<ActivityBL>();
 builder.Services.AddScoped<TimeEntryBL>();
 
