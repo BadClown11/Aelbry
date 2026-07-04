@@ -111,6 +111,94 @@
     </div>
 </div>
 
+<!-- Modal: Duplicar proyecto -->
+<div class="modal fade" id="duplicateProjectModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Duplicar proyecto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="duplicateSourceProjectId" />
+                <div class="mb-2">
+                    <label class="form-label">Codigo del nuevo proyecto</label>
+                    <input class="form-control" id="duplicateNewCode" />
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">Nombre del nuevo proyecto</label>
+                    <input class="form-control" id="duplicateNewName" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button class="btn btn-primary" onclick="Projects.confirmDuplicate()">Duplicar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Esqueleto de plantilla -->
+<div class="modal fade" id="templateSkeletonModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Esqueleto de actividades de la plantilla</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="skeletonTemplateId" />
+                <div class="row mb-3">
+                    <div class="col-md-4"><input class="form-control" id="newSkeletonName" placeholder="Nombre" /></div>
+                    <div class="col-md-4"><input class="form-control" id="newSkeletonDescription" placeholder="Descripcion" /></div>
+                    <div class="col-md-2"><input type="number" step="0.01" class="form-control" id="newSkeletonHours" placeholder="Horas" /></div>
+                    <div class="col-md-2"><button class="btn btn-outline-primary w-100" onclick="Projects.addSkeletonActivity()">Agregar</button></div>
+                </div>
+                <ul class="list-group" id="skeletonRows"></ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Aplicar plantilla -->
+<div class="modal fade" id="applyTemplateModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Aplicar plantilla</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="applyTemplateId" />
+                <div class="mb-2">
+                    <label class="form-label">ID de empresa</label>
+                    <input type="number" class="form-control" id="applyCompanyId" onchange="Projects.loadApplyStatuses()" />
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">Codigo del proyecto</label>
+                    <input class="form-control" id="applyCode" />
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">Nombre del proyecto</label>
+                    <input class="form-control" id="applyName" />
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">Estado inicial</label>
+                    <select class="form-select" id="applyStatusId"></select>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">Responsable (ID de usuario)</label>
+                    <input type="number" class="form-control" id="applyManagerId" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button class="btn btn-primary" onclick="Projects.confirmApplyTemplate()">Crear proyecto</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Modal: Proyecto -->
 <div class="modal fade" id="projectModal" tabindex="-1">
     <div class="modal-dialog modal-lg">

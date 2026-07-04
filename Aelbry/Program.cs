@@ -1,6 +1,7 @@
 using System.Text;
 using Aelbry.BL;
 using Aelbry.BL.AI;
+using Aelbry.BL.Import;
 using Aelbry.BL.Security;
 using Aelbry.Web.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -29,6 +30,9 @@ builder.Services.AddScoped<ActivityBL>();
 builder.Services.Configure<GeminiOptions>(builder.Configuration.GetSection(GeminiOptions.SectionName));
 builder.Services.AddHttpClient<IActivitySuggestionService, GeminiActivitySuggestionService>();
 builder.Services.AddScoped<AiAssistantBL>();
+
+builder.Services.AddMemoryCache();
+builder.Services.AddScoped<ExcelActivityImportBL>();
 
 var jwtSection = builder.Configuration.GetSection(JwtOptions.SectionName);
 

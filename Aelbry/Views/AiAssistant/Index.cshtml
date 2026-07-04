@@ -86,6 +86,37 @@
                 <div id="bulkResult" class="mt-3"></div>
             </div>
         </div>
+
+        <div class="card mt-3">
+            <div class="card-body">
+                <h6>Importar desde Excel</h6>
+                <div class="row mb-2">
+                    <div class="col-md-4">
+                        <label class="form-label">ID de proyecto</label>
+                        <input type="number" class="form-control" id="excelProjectId" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">ID de actividad padre (opcional)</label>
+                        <input type="number" class="form-control" id="excelParentActivityId" />
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">Archivo .xlsx</label>
+                    <input type="file" class="form-control" id="excelFile" accept=".xlsx" />
+                </div>
+                <button class="btn btn-outline-primary" onclick="AiAssistant.previewExcel()">Vista previa</button>
+
+                <div id="excelMappingSection" class="mt-3 d-none">
+                    <p class="text-muted small" id="excelRowCount"></p>
+                    <div class="row" id="excelMappingFields"></div>
+                    <div class="table-responsive mt-2">
+                        <table class="table table-sm" id="excelSampleTable"></table>
+                    </div>
+                    <button class="btn btn-success" onclick="AiAssistant.commitExcel()">Confirmar importacion</button>
+                </div>
+                <div id="excelResult" class="mt-3"></div>
+            </div>
+        </div>
     </div>
 </div>
 

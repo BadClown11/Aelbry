@@ -48,6 +48,7 @@ window.Activities = (function () {
                 <button class="btn btn-sm btn-outline-secondary" onclick="Activities.openDependencies(${a.activityId})">Dependencias</button>
                 <button class="btn btn-sm btn-outline-secondary" onclick="Activities.openParticipants(${a.activityId})">Participantes</button>
                 <button class="btn btn-sm btn-outline-secondary" onclick="Activities.openActivityTags(${a.activityId})">Etiquetas</button>
+                <button class="btn btn-sm btn-outline-secondary" onclick="Activities.duplicate(${a.activityId})">Duplicar</button>
                 <button class="btn btn-sm btn-outline-primary" onclick="Activities.openEdit(${a.activityId})">Editar</button>
                 <button class="btn btn-sm btn-outline-danger" onclick="Activities.remove(${a.activityId})">Eliminar</button>
             </td>`;
@@ -147,6 +148,13 @@ window.Activities = (function () {
     async function remove(activityId) {
         if (!confirm('Eliminar esta actividad?')) return;
         const result = await Aelbry.api.post(`/Activity/Delete?activityId=${activityId}`);
+        if (result.result === 'OK') loadAll();
+        else alert(result.result);
+    }
+
+    async function duplicate(activityId) {
+        if (!confirm('Duplicar esta actividad (con sus subactividades, checklist y etiquetas)?')) return;
+        const result = await Aelbry.api.post(`/Activity/Duplicate?activityId=${activityId}`);
         if (result.result === 'OK') loadAll();
         else alert(result.result);
     }
@@ -342,7 +350,7 @@ window.Activities = (function () {
     }
 
     return {
-        loadAll, openCreate, openEdit, save, remove,
+        loadAll, openCreate, openEdit, save, remove, duplicate,
         openChecklist, addChecklistItem, toggleChecklistItem, deleteChecklistItem,
         openDependencies, addDependency, removeDependency,
         openParticipants, addParticipant, removeParticipant,

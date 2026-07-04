@@ -43,7 +43,8 @@ Aelbry.api = (function () {
     }
 
     async function request(url, options = {}, retry = true) {
-        const headers = Object.assign({ 'Content-Type': 'application/json' }, options.headers || {});
+        const isFormData = options.body instanceof FormData;
+        const headers = Object.assign(isFormData ? {} : { 'Content-Type': 'application/json' }, options.headers || {});
         const token = getAccessToken();
         if (token) {
             headers['Authorization'] = `Bearer ${token}`;
@@ -93,6 +94,7 @@ Aelbry.api = (function () {
     return {
         get: (url) => request(url, { method: 'GET' }),
         post: (url, body) => request(url, { method: 'POST', body: JSON.stringify(body) }),
+        postForm: (url, formData) => request(url, { method: 'POST', body: formData }),
         login,
         logout,
         isAuthenticated: () => !!getAccessToken(),

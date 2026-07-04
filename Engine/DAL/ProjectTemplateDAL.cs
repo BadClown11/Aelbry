@@ -136,6 +136,89 @@ namespace Aelbry.DAL
             }
         }
 
+        public List<ProjectTemplateActivity> GetActivities(int projectTemplateId)
+        {
+            var list = new List<ProjectTemplateActivity>();
+            const string sSp = "SP_PROJECT_TEMPLATE_ACTIVITY_GET_BY_TEMPLATE";
+
+            using (var cmd = CreateStoredProcCommand(sSp, conn, txn))
+            {
+                cmd.Parameters.Add(CreateParameter("@P_PROJECT_TEMPLATE_ID", projectTemplateId));
+
+                using (IDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        list.Add(new ProjectTemplateActivity
+                        {
+                            ProjectTemplateActivityId = Validate.getDefaultIntIfDBNull(reader["PROJECT_TEMPLATE_ACTIVITY_ID"]),
+                            ProjectTemplateId = Validate.getDefaultIntIfDBNull(reader["PROJECT_TEMPLATE_ID"]),
+                            Name = Validate.getDefaultStringIfDBNull(reader["NAME"]),
+                            Description = Validate.getDefaultStringIfDBNull(reader["DESCRIPTION"]),
+                            EstimatedHours = Validate.getDefaultDecimalIfDBNull(reader["ESTIMATED_HOURS"]),
+                            Sequence = Validate.getDefaultIntIfDBNull(reader["SEQUENCE"]),
+                            CreatedBy = Validate.getDefaultIntIfDBNull(reader["CREATED_BY"]),
+                            CreatedDate = Validate.getDefaultDateIfDBNull(reader["CREATED_DATE"]),
+                        });
+                    }
+                }
+            }
+
+            return list;
+        }
+
+        public int AddActivity(int projectTemplateId, string name, string description, decimal estimatedHours, int sequence, int createdBy)
+        {
+            const string sSp = "SP_PROJECT_TEMPLATE_ACTIVITY_INSERT";
+
+            using (var cmd = CreateStoredProcCommand(sSp, conn, txn))
+            {
+                cmd.Parameters.Add(CreateParameter("@P_PROJECT_TEMPLATE_ID", projectTemplateId));
+                cmd.Parameters.Add(CreateParameter("@P_NAME", name));
+                cmd.Parameters.Add(CreateParameter("@P_DESCRIPTION", (object)description ?? DBNull.Value));
+                cmd.Parameters.Add(CreateParameter("@P_ESTIMATED_HOURS", estimatedHours));
+                cmd.Parameters.Add(CreateParameter("@P_SEQUENCE", sequence));
+                cmd.Parameters.Add(CreateParameter("@P_CREATED_BY", createdBy));
+
+                var pNewId = CreateParameterOut("@P_NEW_PROJECT_TEMPLATE_ACTIVITY_ID", DbType.Int32, 4);
+                cmd.Parameters.Add(pNewId);
+
+                var pResult = CreateParameterOut("@OUT_RESULT", DbType.String, 400);
+                cmd.Parameters.Add(pResult);
+
+                cmd.ExecuteNonQuery();
+
+                string result = Validate.getDefaultIfDBNull(pResult.Value, TypeCode.String).ToString();
+                if (result != C.OK)
+                {
+                    throw new DataBaseException(result);
+                }
+
+                return Validate.getDefaultIntIfDBNull(pNewId.Value);
+            }
+        }
+
+        public void RemoveActivity(int projectTemplateActivityId)
+        {
+            const string sSp = "SP_PROJECT_TEMPLATE_ACTIVITY_DELETE";
+
+            using (var cmd = CreateStoredProcCommand(sSp, conn, txn))
+            {
+                cmd.Parameters.Add(CreateParameter("@P_PROJECT_TEMPLATE_ACTIVITY_ID", projectTemplateActivityId));
+
+                var pResult = CreateParameterOut("@OUT_RESULT", DbType.String, 400);
+                cmd.Parameters.Add(pResult);
+
+                cmd.ExecuteNonQuery();
+
+                string result = Validate.getDefaultIfDBNull(pResult.Value, TypeCode.String).ToString();
+                if (result != C.OK)
+                {
+                    throw new DataBaseException(result);
+                }
+            }
+        }
+
         private ProjectTemplate MapProjectTemplate(IDataReader reader)
         {
             return new ProjectTemplate

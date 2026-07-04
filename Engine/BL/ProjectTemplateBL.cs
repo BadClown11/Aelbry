@@ -44,5 +44,29 @@ namespace Aelbry.BL
                 dal.Delete(projectTemplateId, modifiedBy);
             }
         }
+
+        public List<ProjectTemplateActivity> GetActivities(int projectTemplateId)
+        {
+            using (var dal = ProjectTemplateDAL.Instance)
+            {
+                return dal.GetActivities(projectTemplateId);
+            }
+        }
+
+        public int AddActivity(int projectTemplateId, string name, string description, decimal estimatedHours, int sequence, int createdBy)
+        {
+            using (var dal = ProjectTemplateDAL.Instance)
+            {
+                return dal.AddActivity(projectTemplateId, name, description, estimatedHours, sequence, createdBy);
+            }
+        }
+
+        public void RemoveActivity(int projectTemplateActivityId)
+        {
+            using (var dal = ProjectTemplateDAL.Instance)
+            {
+                dal.RemoveActivity(projectTemplateActivityId);
+            }
+        }
     }
 }

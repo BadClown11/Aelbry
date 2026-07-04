@@ -106,5 +106,27 @@ namespace Aelbry.Web.Controllers
         {
             return Exec(() => _projectBL.RemoveTag(projectId, tagId));
         }
+
+        /// <summary>
+        /// Duplicacion profunda (Modulo 4): clona el proyecto, sus etiquetas y el arbol
+        /// completo de actividades (subactividades, checklists, etiquetas de cada una).
+        /// </summary>
+        [HttpPost]
+        [Authorize(Policy = "Permission:PROJECTS_CREATE")]
+        public JsonResult Duplicate(int projectId, string newCode, string newName)
+        {
+            return Exec(() => _projectBL.Duplicate(projectId, newCode, newName, CurrentUserId));
+        }
+
+        /// <summary>
+        /// Aplica una plantilla corporativa (Modulo 4): crea el proyecto con los valores por
+        /// defecto de la plantilla y clona su esqueleto de actividades.
+        /// </summary>
+        [HttpPost]
+        [Authorize(Policy = "Permission:PROJECTS_CREATE")]
+        public JsonResult CreateFromTemplate(int projectTemplateId, string code, string name, int companyId, int projectStatusId, int projectManagerId)
+        {
+            return Exec(() => _projectBL.CreateFromTemplate(projectTemplateId, code, name, companyId, projectStatusId, projectManagerId, CurrentUserId));
+        }
     }
 }

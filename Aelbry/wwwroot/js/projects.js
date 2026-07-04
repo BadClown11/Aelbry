@@ -3,6 +3,7 @@ window.Projects = (function () {
     const RISK_LABELS = { 1: 'Bajo', 2: 'Medio', 3: 'Alto' };
 
     let modal, membersModal, projectTagsModal, statusModal, tagModal, templateModal;
+    let duplicateProjectModal, templateSkeletonModal, applyTemplateModal;
     let companyTags = [];
     let projectTagsCache = [];
 
@@ -39,6 +40,7 @@ window.Projects = (function () {
                 <td class="text-end">
                     <button class="btn btn-sm btn-outline-secondary" onclick="Projects.openMembers(${p.projectId})">Miembros</button>
                     <button class="btn btn-sm btn-outline-secondary" onclick="Projects.openProjectTags(${p.projectId})">Etiquetas</button>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="Projects.openDuplicate(${p.projectId}, '${p.code}', '${(p.name ?? '').replace(/'/g, "\\'")}')">Duplicar</button>
                     <button class="btn btn-sm btn-outline-primary" onclick="Projects.openEdit(${p.projectId})">Editar</button>
                     <button class="btn btn-sm btn-outline-danger" onclick="Projects.remove(${p.projectId})">Eliminar</button>
                 </td>`;
@@ -115,6 +117,8 @@ window.Projects = (function () {
                 <td>${PRIORITY_LABELS[t.defaultPriority] ?? t.defaultPriority}</td>
                 <td>${t.defaultEstimatedHours}</td>
                 <td class="text-end">
+                    <button class="btn btn-sm btn-outline-secondary" onclick="Projects.openSkeleton(${t.projectTemplateId})">Esqueleto</button>
+                    <button class="btn btn-sm btn-outline-success" onclick="Projects.openApplyTemplate(${t.projectTemplateId})">Aplicar</button>
                     <button class="btn btn-sm btn-outline-primary" onclick='Projects.openEditTemplate(${JSON.stringify(t)})'>Editar</button>
                     <button class="btn btn-sm btn-outline-danger" onclick="Projects.removeTemplate(${t.projectTemplateId})">Eliminar</button>
                 </td>`;
@@ -198,6 +202,29 @@ window.Projects = (function () {
         const result = await Aelbry.api.post(`/Project/Delete?projectId=${projectId}`);
         if (result.result === 'OK') loadProjects();
         else alert(result.result);
+    }
+
+    // ---- Duplicacion profunda ----
+    function openDuplicate(projectId, code, name) {
+        document.getElementById('duplicateSourceProjectId').value = projectId;
+        document.getElementById('duplicateNewCode').value = `${code}-COPIA`;
+        document.getElementById('duplicateNewName').value = `${name} (copia)`;
+        duplicateProjectModal = duplicateProjectModal || new bootstrap.Modal(document.getElementById('duplicateProjectModal'));
+        duplicateProjectModal.show();
+    }
+
+    async function confirmDuplicate() {
+        const projectId = document.getElementById('duplicateSourceProjectId').value;
+        const newCode = document.getElementById('duplicateNewCode').value;
+        const newName = document.getElementById('duplicateNewName').value;
+
+        const result = await Aelbry.api.post(`/Project/Duplicate?projectId=${projectId}&newCode=${encodeURIComponent(newCode)}&newName=${encodeURIComponent(newName)}`);
+        if (result.result === 'OK') {
+            bootstrap.Modal.getInstance(document.getElementById('duplicateProjectModal'))?.hide();
+            loadProjects();
+        } else {
+            alert(result.result);
+        }
     }
 
     // ---- Miembros ----
@@ -424,12 +451,108 @@ window.Projects = (function () {
         else alert(result.result);
     }
 
+    // ---- Esqueleto de plantilla ----
+    async function openSkeleton(projectTemplateId) {
+        document.getElementById('skeletonTemplateId').value = projectTemplateId;
+        await reloadSkeleton();
+        templateSkeletonModal = templateSkeletonModal || new bootstrap.Modal(document.getElementById('templateSkeletonModal'));
+        templateSkeletonModal.show();
+    }
+
+    async function reloadSkeleton() {
+        const projectTemplateId = document.getElementById('skeletonTemplateId').value;
+        const result = await Aelbry.api.get(`/ProjectTemplate/GetActivities?projectTemplateId=${projectTemplateId}`);
+        const rows = document.getElementById('skeletonRows');
+        rows.innerHTML = '';
+
+        if (result.result !== 'OK') return;
+
+        result.data.forEach((a) => {
+            const li = document.createElement('li');
+            li.className = 'list-group-item d-flex justify-content-between align-items-center';
+            li.innerHTML = `
+                <span><strong>${a.name}</strong> <small class="text-muted">${a.description ?? ''} (${a.estimatedHours}h)</small></span>
+                <button class="btn btn-sm btn-outline-danger" onclick="Projects.removeSkeletonActivity(${a.projectTemplateActivityId})">Quitar</button>`;
+            rows.appendChild(li);
+        });
+    }
+
+    async function addSkeletonActivity() {
+        const projectTemplateId = document.getElementById('skeletonTemplateId').value;
+        const name = document.getElementById('newSkeletonName').value;
+        const description = document.getElementById('newSkeletonDescription').value;
+        const hours = parseFloat(document.getElementById('newSkeletonHours').value || '0');
+        if (!name) return;
+
+        const result = await Aelbry.api.post(`/ProjectTemplate/AddActivity?projectTemplateId=${projectTemplateId}&name=${encodeURIComponent(name)}&description=${encodeURIComponent(description)}&estimatedHours=${hours}&sequence=0`);
+        if (result.result === 'OK') {
+            document.getElementById('newSkeletonName').value = '';
+            document.getElementById('newSkeletonDescription').value = '';
+            document.getElementById('newSkeletonHours').value = '';
+            await reloadSkeleton();
+        } else {
+            alert(result.result);
+        }
+    }
+
+    async function removeSkeletonActivity(projectTemplateActivityId) {
+        const result = await Aelbry.api.post(`/ProjectTemplate/RemoveActivity?projectTemplateActivityId=${projectTemplateActivityId}`);
+        if (result.result === 'OK') await reloadSkeleton();
+        else alert(result.result);
+    }
+
+    // ---- Aplicar plantilla ----
+    function openApplyTemplate(projectTemplateId) {
+        document.getElementById('applyTemplateId').value = projectTemplateId;
+        document.getElementById('applyCompanyId').value = companyId() || '';
+        document.getElementById('applyCode').value = '';
+        document.getElementById('applyName').value = '';
+        document.getElementById('applyManagerId').value = '';
+        document.getElementById('applyStatusId').innerHTML = '';
+        if (companyId()) loadApplyStatuses();
+
+        applyTemplateModal = applyTemplateModal || new bootstrap.Modal(document.getElementById('applyTemplateModal'));
+        applyTemplateModal.show();
+    }
+
+    async function loadApplyStatuses() {
+        const cid = document.getElementById('applyCompanyId').value;
+        if (!cid) return;
+
+        const result = await Aelbry.api.get(`/ProjectStatus/GetByCompany?companyId=${cid}`);
+        const select = document.getElementById('applyStatusId');
+        select.innerHTML = result.result === 'OK'
+            ? result.data.map((s) => `<option value="${s.projectStatusId}">${s.name}</option>`).join('')
+            : '';
+    }
+
+    async function confirmApplyTemplate() {
+        const templateId = document.getElementById('applyTemplateId').value;
+        const companyIdValue = document.getElementById('applyCompanyId').value;
+        const code = document.getElementById('applyCode').value;
+        const name = document.getElementById('applyName').value;
+        const statusId = document.getElementById('applyStatusId').value;
+        const managerId = document.getElementById('applyManagerId').value;
+
+        const result = await Aelbry.api.post(`/Project/CreateFromTemplate?projectTemplateId=${templateId}&code=${encodeURIComponent(code)}&name=${encodeURIComponent(name)}&companyId=${companyIdValue}&projectStatusId=${statusId}&projectManagerId=${managerId}`);
+        if (result.result === 'OK') {
+            bootstrap.Modal.getInstance(document.getElementById('applyTemplateModal'))?.hide();
+            alert(`Proyecto #${result.data} creado a partir de la plantilla.`);
+            if (companyId()) loadProjects();
+        } else {
+            alert(result.result);
+        }
+    }
+
     return {
         loadAll, openCreate, openEdit, save, remove,
         openMembers, addMember, removeMember,
         openProjectTags, toggleProjectTag,
+        openDuplicate, confirmDuplicate,
         openCreateStatus, openEditStatus, saveStatus, removeStatus,
         openCreateTag, openEditTag, saveTag, removeTag,
         openCreateTemplate, openEditTemplate, saveTemplate, removeTemplate,
+        openSkeleton, addSkeletonActivity, removeSkeletonActivity,
+        openApplyTemplate, loadApplyStatuses, confirmApplyTemplate,
     };
 })();

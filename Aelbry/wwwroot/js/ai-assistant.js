@@ -1,5 +1,15 @@
 window.AiAssistant = (function () {
     let lastSuggestion = null;
+    let lastExcelToken = null;
+    let lastExcelColumns = [];
+
+    const MAPPING_FIELDS = [
+        { id: 'mapName', label: 'Nombre (obligatorio)' },
+        { id: 'mapDescription', label: 'Descripcion' },
+        { id: 'mapEstimatedHours', label: 'Horas estimadas' },
+        { id: 'mapCategory', label: 'Categoria' },
+        { id: 'mapResponsible', label: 'Responsable (ID o email)' },
+    ];
 
     function toggleTarget() {
         const isNew = document.getElementById('targetNew').checked;
@@ -156,5 +166,79 @@ window.AiAssistant = (function () {
         return div.innerHTML;
     }
 
-    return { toggleTarget, loadStatuses, sendPrompt, toggleNode, insertSelection, bulkCreate };
+    // ---- Importacion desde Excel ----
+    async function previewExcel() {
+        const fileInput = document.getElementById('excelFile');
+        const resultBox = document.getElementById('excelResult');
+        resultBox.innerHTML = '';
+
+        if (!fileInput.files.length) {
+            resultBox.innerHTML = '<div class="alert alert-warning">Selecciona un archivo .xlsx.</div>';
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+
+        const result = await Aelbry.api.postForm('/Activity/ImportExcelPreview', formData);
+
+        if (result.result !== 'OK') {
+            resultBox.innerHTML = `<div class="alert alert-danger">${escapeHtml(result.result)}</div>`;
+            return;
+        }
+
+        lastExcelToken = result.data.token;
+        lastExcelColumns = result.data.columns;
+
+        document.getElementById('excelRowCount').textContent = `${result.data.totalRows} filas detectadas. Elige que columna corresponde a cada campo:`;
+
+        const optionsHtml = `<option value="">(no usar)</option>` + lastExcelColumns.map((c) => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+        document.getElementById('excelMappingFields').innerHTML = MAPPING_FIELDS.map((f) => `
+            <div class="col-md-4 mb-2">
+                <label class="form-label">${f.label}</label>
+                <select class="form-select form-select-sm" id="${f.id}">${optionsHtml}</select>
+            </div>`).join('');
+
+        const sampleTable = document.getElementById('excelSampleTable');
+        const headerHtml = `<thead><tr>${lastExcelColumns.map((c) => `<th>${escapeHtml(c)}</th>`).join('')}</tr></thead>`;
+        const bodyHtml = `<tbody>${result.data.sampleRows.map((row) => `<tr>${lastExcelColumns.map((c) => `<td>${escapeHtml(row[c])}</td>`).join('')}</tr>`).join('')}</tbody>`;
+        sampleTable.innerHTML = headerHtml + bodyHtml;
+
+        document.getElementById('excelMappingSection').classList.remove('d-none');
+    }
+
+    async function commitExcel() {
+        const payload = {
+            token: lastExcelToken,
+            projectId: parseInt(document.getElementById('excelProjectId').value, 10),
+            parentActivityId: document.getElementById('excelParentActivityId').value
+                ? parseInt(document.getElementById('excelParentActivityId').value, 10)
+                : null,
+            mapping: {
+                nameColumn: document.getElementById('mapName').value,
+                descriptionColumn: document.getElementById('mapDescription').value,
+                estimatedHoursColumn: document.getElementById('mapEstimatedHours').value,
+                categoryColumn: document.getElementById('mapCategory').value,
+                responsibleColumn: document.getElementById('mapResponsible').value,
+            },
+        };
+
+        const result = await Aelbry.api.post('/Activity/ImportExcelCommit', payload);
+        const resultBox = document.getElementById('excelResult');
+
+        if (result.result === 'OK') {
+            const warnings = result.data.warnings.length
+                ? `<ul>${result.data.warnings.map((w) => `<li>${escapeHtml(w)}</li>`).join('')}</ul>`
+                : '';
+            resultBox.innerHTML = `<div class="alert alert-success">Se crearon ${result.data.createdCount} actividades.${warnings}</div>`;
+            document.getElementById('excelMappingSection').classList.add('d-none');
+        } else {
+            resultBox.innerHTML = `<div class="alert alert-danger">${escapeHtml(result.result)}</div>`;
+        }
+    }
+
+    return {
+        toggleTarget, loadStatuses, sendPrompt, toggleNode, insertSelection, bulkCreate,
+        previewExcel, commitExcel,
+    };
 })();

@@ -126,6 +126,85 @@ namespace Aelbry.BL
             }
         }
 
+        /// <summary>
+        /// Duplicacion profunda (Modulo 4) de una sola actividad: clona su subarbol completo
+        /// (subactividades, checklist, etiquetas) dentro del mismo proyecto o de otro destino.
+        /// </summary>
+        public int DuplicateActivity(int activityId, int? targetProjectId, int? targetParentActivityId, int currentUserId)
+        {
+            using (var dal = ActivityDAL.Instance)
+            {
+                var source = dal.GetById(activityId)
+                    ?? throw new InvalidOperationException("La actividad no existe.");
+
+                return CloneTree(dal, source, targetProjectId ?? source.ProjectId, targetParentActivityId ?? source.ParentActivityId, currentUserId);
+            }
+        }
+
+        /// <summary>
+        /// Duplicacion profunda (Modulo 4) de todas las actividades raiz de un proyecto (y sus
+        /// subarboles completos) hacia otro proyecto destino. Usado por ProjectBL.Duplicate.
+        /// </summary>
+        public List<int> DuplicateProjectActivities(int sourceProjectId, int targetProjectId, int currentUserId)
+        {
+            using (var dal = ActivityDAL.Instance)
+            {
+                var roots = dal.GetFlatByProject(sourceProjectId).Where(a => a.ParentActivityId == null).ToList();
+                var newIds = new List<int>();
+
+                foreach (var root in roots)
+                {
+                    var fullRoot = dal.GetById(root.ActivityId);
+                    newIds.Add(CloneTree(dal, fullRoot, targetProjectId, null, currentUserId));
+                }
+
+                return newIds;
+            }
+        }
+
+        private int CloneTree(ActivityDAL dal, Activity source, int targetProjectId, int? targetParentActivityId, int currentUserId)
+        {
+            var clone = new Activity
+            {
+                ProjectId = targetProjectId,
+                ParentActivityId = targetParentActivityId,
+                Name = source.Name,
+                Description = source.Description,
+                Category = source.Category,
+                ColorHex = source.ColorHex,
+                Status = ActivityStatus.Pending,
+                Priority = source.Priority,
+                ResponsibleUserId = source.ResponsibleUserId,
+                EstimatedStartDate = source.EstimatedStartDate,
+                EstimatedEndDate = source.EstimatedEndDate,
+                Weight = source.Weight,
+                EstimatedHours = source.EstimatedHours,
+                CreatedBy = currentUserId,
+            };
+
+            int newId = Create(clone);
+
+            foreach (var checklistItem in source.ChecklistItems)
+            {
+                dal.AddChecklistItem(newId, checklistItem.Text, checklistItem.Sequence, currentUserId);
+            }
+
+            foreach (var tag in source.Tags)
+            {
+                dal.AddTag(newId, tag.TagId);
+            }
+
+            var children = dal.GetFlatByProject(source.ProjectId).Where(a => a.ParentActivityId == source.ActivityId);
+
+            foreach (var child in children)
+            {
+                var fullChild = dal.GetById(child.ActivityId);
+                CloneTree(dal, fullChild, targetProjectId, newId, currentUserId);
+            }
+
+            return newId;
+        }
+
         public List<ActivityParticipant> GetParticipants(int activityId)
         {
             using (var dal = ActivityDAL.Instance)

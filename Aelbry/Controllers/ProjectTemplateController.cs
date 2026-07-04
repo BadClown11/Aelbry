@@ -57,5 +57,26 @@ namespace Aelbry.Web.Controllers
         {
             return Exec(() => _projectTemplateBL.Delete(projectTemplateId, CurrentUserId));
         }
+
+        [HttpGet]
+        [Authorize(Policy = "Permission:PROJECTS_VIEW")]
+        public JsonResult GetActivities(int projectTemplateId)
+        {
+            return Exec(() => _projectTemplateBL.GetActivities(projectTemplateId));
+        }
+
+        [HttpPost]
+        [Authorize(Policy = "Permission:PROJECT_TEMPLATES_MANAGE")]
+        public JsonResult AddActivity(int projectTemplateId, string name, string description, decimal estimatedHours, int sequence)
+        {
+            return Exec(() => _projectTemplateBL.AddActivity(projectTemplateId, name, description, estimatedHours, sequence, CurrentUserId));
+        }
+
+        [HttpPost]
+        [Authorize(Policy = "Permission:PROJECT_TEMPLATES_MANAGE")]
+        public JsonResult RemoveActivity(int projectTemplateActivityId)
+        {
+            return Exec(() => _projectTemplateBL.RemoveActivity(projectTemplateActivityId));
+        }
     }
 }

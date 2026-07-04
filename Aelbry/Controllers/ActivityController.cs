@@ -1,5 +1,7 @@
 using Aelbry.BL;
+using Aelbry.BL.Import;
 using Aelbry.BO;
+using Aelbry.BO.Import;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,10 +11,12 @@ namespace Aelbry.Web.Controllers
     public class ActivityController : ApiControllerBase
     {
         private readonly ActivityBL _activityBL;
+        private readonly ExcelActivityImportBL _excelImportBL;
 
-        public ActivityController(ActivityBL activityBL)
+        public ActivityController(ActivityBL activityBL, ExcelActivityImportBL excelImportBL)
         {
             _activityBL = activityBL;
+            _excelImportBL = excelImportBL;
         }
 
         [HttpGet]
@@ -73,6 +77,42 @@ namespace Aelbry.Web.Controllers
         public JsonResult BulkCreate([FromBody] BulkCreateActivitiesRequest request)
         {
             return Exec(() => _activityBL.BulkCreate(request.ProjectId, request.ParentActivityId, request.Lines, CurrentUserId));
+        }
+
+        /// <summary>
+        /// Duplicacion profunda de una actividad (Modulo 4): clona su subarbol completo
+        /// (subactividades, checklist, etiquetas).
+        /// </summary>
+        [HttpPost]
+        [Authorize(Policy = "Permission:ACTIVITIES_CREATE")]
+        public JsonResult Duplicate(int activityId, int? targetProjectId, int? targetParentActivityId)
+        {
+            return Exec(() => _activityBL.DuplicateActivity(activityId, targetProjectId, targetParentActivityId, CurrentUserId));
+        }
+
+        /// <summary>
+        /// Paso 1 de la importacion masiva desde Excel: lee el archivo, cachea las filas bajo
+        /// un token efimero, y devuelve las columnas detectadas para que el usuario las mapee.
+        /// </summary>
+        [HttpPost]
+        [Authorize(Policy = "Permission:ACTIVITIES_CREATE")]
+        public JsonResult ImportExcelPreview(IFormFile file)
+        {
+            return Exec(() =>
+            {
+                using var stream = file.OpenReadStream();
+                return _excelImportBL.Preview(stream);
+            });
+        }
+
+        /// <summary>
+        /// Paso 2: aplica el mapeo de columnas elegido y crea una actividad por fila valida.
+        /// </summary>
+        [HttpPost]
+        [Authorize(Policy = "Permission:ACTIVITIES_CREATE")]
+        public JsonResult ImportExcelCommit([FromBody] ExcelImportCommitRequest request)
+        {
+            return Exec(() => _excelImportBL.Commit(request, CurrentUserId));
         }
 
         [HttpGet]
