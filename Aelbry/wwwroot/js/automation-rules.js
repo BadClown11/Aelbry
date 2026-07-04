@@ -1,6 +1,6 @@
 window.AutomationRules = (function () {
     const TRIGGER_TYPE_LABELS = { 1: 'Avance de Actividad', 2: 'Estado de Actividad', 3: 'Avance de Proyecto' };
-    const ACTION_TYPE_LABELS = { 1: 'Cambiar estado de Actividad', 2: 'Cambiar estado de Proyecto' };
+    const ACTION_TYPE_LABELS = { 1: 'Cambiar estado de Actividad', 2: 'Cambiar estado de Proyecto', 3: 'Enviar notificacion' };
     const STATUS_LABELS = { 1: 'Pendiente', 2: 'En Progreso', 3: 'Bloqueada', 4: 'Completada', 5: 'Cancelada' };
 
     let ruleModal, logModal;
@@ -19,6 +19,7 @@ window.AutomationRules = (function () {
     function describeAction(r) {
         if (r.actionType === 1) return `Actividad #${r.actionTargetActivityId} -> ${STATUS_LABELS[r.actionNewActivityStatus] ?? r.actionNewActivityStatus}`;
         if (r.actionType === 2) return `Proyecto #${r.actionTargetProjectId} -> estado #${r.actionNewProjectStatusId}`;
+        if (r.actionType === 3) return `Notificar a usuario #${r.actionNotificationUserId}: "${r.actionNotificationMessage ?? ''}"`;
         return ACTION_TYPE_LABELS[r.actionType] ?? '';
     }
 
@@ -60,6 +61,7 @@ window.AutomationRules = (function () {
         const type = parseInt(document.getElementById('actionType').value, 10);
         document.getElementById('actionActivityFields').classList.toggle('d-none', type !== 1);
         document.getElementById('actionProjectFields').classList.toggle('d-none', type !== 2);
+        document.getElementById('actionNotificationFields').classList.toggle('d-none', type !== 3);
     }
 
     function openCreate() {
@@ -75,6 +77,8 @@ window.AutomationRules = (function () {
         document.getElementById('actionTargetProjectId').value = '';
         document.getElementById('actionNewActivityStatus').value = '4';
         document.getElementById('actionNewProjectStatusId').value = '';
+        document.getElementById('actionNotificationUserId').value = '';
+        document.getElementById('actionNotificationMessage').value = '';
         document.getElementById('ruleIsActive').checked = true;
         onTriggerTypeChange();
         onActionTypeChange();
@@ -97,6 +101,8 @@ window.AutomationRules = (function () {
         document.getElementById('actionTargetProjectId').value = r.actionTargetProjectId ?? '';
         document.getElementById('actionNewActivityStatus').value = r.actionNewActivityStatus ?? '4';
         document.getElementById('actionNewProjectStatusId').value = r.actionNewProjectStatusId ?? '';
+        document.getElementById('actionNotificationUserId').value = r.actionNotificationUserId ?? '';
+        document.getElementById('actionNotificationMessage').value = r.actionNotificationMessage ?? '';
         document.getElementById('ruleIsActive').checked = r.isActive;
         onTriggerTypeChange();
         onActionTypeChange();
@@ -125,6 +131,8 @@ window.AutomationRules = (function () {
             actionTargetProjectId: numOrNull('actionTargetProjectId'),
             actionNewActivityStatus: parseInt(val('actionNewActivityStatus'), 10),
             actionNewProjectStatusId: numOrNull('actionNewProjectStatusId'),
+            actionNotificationUserId: numOrNull('actionNotificationUserId'),
+            actionNotificationMessage: val('actionNotificationMessage'),
             isActive: document.getElementById('ruleIsActive').checked,
         };
 

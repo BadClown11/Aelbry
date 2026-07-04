@@ -42,6 +42,21 @@
                     <li class="nav-item"><a class="nav-link" asp-controller="Report" asp-action="Index">Reportes</a></li>
                 </ul>
                 <div class="d-flex align-items-center gap-2">
+                    <div class="dropdown">
+                        <button id="notificationBell" class="btn btn-sm rounded-circle position-relative" title="Notificaciones" style="width: 2.25rem; height: 2.25rem;" data-bs-toggle="dropdown">
+                            🔔
+                            <span id="notificationBadge" class="badge rounded-pill text-bg-danger position-absolute top-0 start-100 translate-middle d-none">0</span>
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-end p-0" style="width: 320px; max-height: 420px; overflow-y: auto;">
+                            <div class="d-flex justify-content-between align-items-center p-2 border-bottom">
+                                <strong class="small">Notificaciones</strong>
+                                <button class="btn btn-sm btn-link p-0" onclick="Notifications.markAllAsRead()">Marcar todas leidas</button>
+                            </div>
+                            <ul class="list-group list-group-flush" id="notificationList">
+                                <li class="list-group-item small text-muted">Sin notificaciones</li>
+                            </ul>
+                        </div>
+                    </div>
                     <button id="themeToggle" class="btn btn-sm rounded-circle" title="Cambiar tema" style="width: 2.25rem; height: 2.25rem;">
                         <span id="themeToggleIcon">🌙</span>
                     </button>
@@ -58,8 +73,10 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@@microsoft/signalr@@8.0.0/dist/browser/signalr.min.js"></script>
     <script src="~/js/api.js"></script>
     <script src="~/js/common.js"></script>
+    <script src="~/js/notifications.js"></script>
     <script>
         document.getElementById('btnLogout')?.addEventListener('click', () => {
             Aelbry.api.logout().finally(() => window.location.href = '/Auth/Login');

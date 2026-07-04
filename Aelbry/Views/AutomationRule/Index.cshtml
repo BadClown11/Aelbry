@@ -95,6 +95,7 @@
                     <select class="form-select" id="actionType" onchange="AutomationRules.onActionTypeChange()">
                         <option value="1">Cambiar estado de una Actividad</option>
                         <option value="2">Cambiar estado (flujo) de un Proyecto</option>
+                        <option value="3">Enviar una notificacion</option>
                     </select>
                 </div>
                 <div class="row" id="actionActivityFields">
@@ -121,6 +122,16 @@
                     <div class="col-md-6 mb-2">
                         <label class="form-label">ID del nuevo estado de proyecto</label>
                         <input type="number" class="form-control" id="actionNewProjectStatusId" />
+                    </div>
+                </div>
+                <div class="row" id="actionNotificationFields">
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label">ID de usuario a notificar</label>
+                        <input type="number" class="form-control" id="actionNotificationUserId" />
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label">Mensaje</label>
+                        <input class="form-control" id="actionNotificationMessage" />
                     </div>
                 </div>
 

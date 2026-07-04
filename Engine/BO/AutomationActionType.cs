@@ -4,5 +4,6 @@ namespace Aelbry.BO
     {
         ChangeActivityStatus = 1,
         ChangeProjectStatus = 2,
+        SendNotification = 3,
     }
 }

@@ -118,6 +118,8 @@ namespace Aelbry.DAL
                 cmd.Parameters.Add(CreateParameter("@P_ACTION_TARGET_PROJECT_ID", (object)rule.ActionTargetProjectId ?? DBNull.Value));
                 cmd.Parameters.Add(CreateParameter("@P_ACTION_NEW_ACTIVITY_STATUS", rule.ActionNewActivityStatus.HasValue ? (byte)rule.ActionNewActivityStatus.Value : (object)DBNull.Value));
                 cmd.Parameters.Add(CreateParameter("@P_ACTION_NEW_PROJECT_STATUS_ID", (object)rule.ActionNewProjectStatusId ?? DBNull.Value));
+                cmd.Parameters.Add(CreateParameter("@P_ACTION_NOTIFICATION_MESSAGE", (object)rule.ActionNotificationMessage ?? DBNull.Value));
+                cmd.Parameters.Add(CreateParameter("@P_ACTION_NOTIFICATION_USER_ID", (object)rule.ActionNotificationUserId ?? DBNull.Value));
                 cmd.Parameters.Add(CreateParameter("@P_CREATED_BY", rule.CreatedBy));
 
                 var pNewId = CreateParameterOut("@P_NEW_AUTOMATION_RULE_ID", DbType.Int32, 4);
@@ -156,6 +158,8 @@ namespace Aelbry.DAL
                 cmd.Parameters.Add(CreateParameter("@P_ACTION_TARGET_PROJECT_ID", (object)rule.ActionTargetProjectId ?? DBNull.Value));
                 cmd.Parameters.Add(CreateParameter("@P_ACTION_NEW_ACTIVITY_STATUS", rule.ActionNewActivityStatus.HasValue ? (byte)rule.ActionNewActivityStatus.Value : (object)DBNull.Value));
                 cmd.Parameters.Add(CreateParameter("@P_ACTION_NEW_PROJECT_STATUS_ID", (object)rule.ActionNewProjectStatusId ?? DBNull.Value));
+                cmd.Parameters.Add(CreateParameter("@P_ACTION_NOTIFICATION_MESSAGE", (object)rule.ActionNotificationMessage ?? DBNull.Value));
+                cmd.Parameters.Add(CreateParameter("@P_ACTION_NOTIFICATION_USER_ID", (object)rule.ActionNotificationUserId ?? DBNull.Value));
                 cmd.Parameters.Add(CreateParameter("@P_IS_ACTIVE", rule.IsActive));
                 cmd.Parameters.Add(CreateParameter("@P_MODIFIED_BY", (object)rule.ModifiedBy ?? DBNull.Value));
 
@@ -266,6 +270,9 @@ namespace Aelbry.DAL
                 ActionTargetProjectName = Validate.getDefaultStringIfDBNull(reader["ACTION_TARGET_PROJECT_NAME"]),
                 ActionNewActivityStatus = reader["ACTION_NEW_ACTIVITY_STATUS"] == DBNull.Value ? (ActivityStatus?)null : (ActivityStatus)Validate.getDefaultIntIfDBNull(reader["ACTION_NEW_ACTIVITY_STATUS"]),
                 ActionNewProjectStatusId = Validate.getDefaultNullableIntIfDBNull(reader["ACTION_NEW_PROJECT_STATUS_ID"]),
+                ActionNotificationMessage = Validate.getDefaultStringIfDBNull(reader["ACTION_NOTIFICATION_MESSAGE"]),
+                ActionNotificationUserId = Validate.getDefaultNullableIntIfDBNull(reader["ACTION_NOTIFICATION_USER_ID"]),
+                ActionNotificationUserName = Validate.getDefaultStringIfDBNull(reader["ACTION_NOTIFICATION_USER_NAME"]),
                 IsActive = Validate.getDefaultBoolIfDBNull(reader["IS_ACTIVE"]),
                 CreatedBy = Validate.getDefaultIntIfDBNull(reader["CREATED_BY"]),
                 CreatedDate = Validate.getDefaultDateIfDBNull(reader["CREATED_DATE"]),

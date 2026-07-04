@@ -42,6 +42,12 @@ namespace Aelbry.BO
 
         public int? ActionNewProjectStatusId { get; set; }
 
+        public string ActionNotificationMessage { get; set; }
+
+        public int? ActionNotificationUserId { get; set; }
+
+        public string ActionNotificationUserName { get; set; }
+
         public bool IsActive { get; set; }
     }
 }

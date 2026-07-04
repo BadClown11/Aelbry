@@ -1,10 +1,13 @@
 using System.Text;
 using Aelbry.BL;
 using Aelbry.BL.AI;
+using Aelbry.BL.Email;
 using Aelbry.BL.Import;
+using Aelbry.BL.Notifications;
 using Aelbry.BL.Security;
 using Aelbry.Web.Hubs;
 using Aelbry.Web.Security;
+using Aelbry.Web.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
@@ -41,6 +44,14 @@ builder.Services.AddScoped<ExcelActivityImportBL>();
 
 builder.Services.AddScoped<ChatBL>();
 builder.Services.AddSignalR();
+
+builder.Services.Configure<EmailOptions>(builder.Configuration.GetSection(EmailOptions.SectionName));
+builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
+
+builder.Services.AddScoped<INotificationPublisher, SignalRNotificationPublisher>();
+builder.Services.AddScoped<NotificationBL>();
+builder.Services.AddScoped<DueDateReminderBL>();
+builder.Services.AddHostedService<DueDateReminderService>();
 
 var jwtSection = builder.Configuration.GetSection(JwtOptions.SectionName);
 
@@ -102,5 +113,6 @@ app.MapControllerRoute(
     pattern: "{controller=Auth}/{action=Login}/{id?}");
 
 app.MapHub<ChatHub>("/hubs/chat");
+app.MapHub<NotificationHub>("/hubs/notifications");
 
 app.Run();

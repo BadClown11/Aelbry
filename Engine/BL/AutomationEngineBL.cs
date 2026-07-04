@@ -1,3 +1,4 @@
+using Aelbry.BL.Notifications;
 using Aelbry.BO;
 using Aelbry.DAL;
 
@@ -9,9 +10,17 @@ namespace Aelbry.BL
     /// que ActivityBL es quien invoca a este motor tras cada cambio de estado/avance. Como
     /// consecuencia, las acciones de una regla NO vuelven a disparar otras reglas en cascada
     /// (evita bucles infinitos); es una limitacion conocida de esta primera version.
+    /// NotificationBL si puede inyectarse sin ciclo, porque no depende de ActivityBL/ProjectBL.
     /// </summary>
     public class AutomationEngineBL
     {
+        private readonly NotificationBL _notificationBL;
+
+        public AutomationEngineBL(NotificationBL notificationBL)
+        {
+            _notificationBL = notificationBL;
+        }
+
         public void CheckActivityStatusChanged(int activityId, ActivityStatus newStatus, int triggeredBy)
         {
             using (var ruleDal = AutomationRuleDAL.Instance)
@@ -74,6 +83,14 @@ namespace Aelbry.BL
                         {
                             projectDal.UpdateStatus(rule.ActionTargetProjectId!.Value, rule.ActionNewProjectStatusId!.Value, triggeredBy);
                         }
+                        break;
+
+                    case AutomationActionType.SendNotification:
+                        _notificationBL.Create(
+                            rule.ActionNotificationUserId!.Value,
+                            $"Automatizacion: {rule.Name}",
+                            rule.ActionNotificationMessage ?? rule.Name,
+                            link: null);
                         break;
                 }
 
