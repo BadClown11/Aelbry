@@ -33,7 +33,10 @@ window.AiAssistant = (function () {
         const container = document.getElementById('chatMessages');
         const wrapper = document.createElement('div');
         wrapper.className = `d-flex mb-2 ${alignRight ? 'justify-content-end' : 'justify-content-start'}`;
-        wrapper.innerHTML = `<div class="p-2 rounded ${alignRight ? 'bg-primary text-white' : 'bg-light border'}" style="max-width: 80%;">${html}</div>`;
+        const bubbleStyle = alignRight
+            ? 'background-color: var(--aelbry-primary); color: #fff;'
+            : 'background-color: var(--aelbry-surface-alt); border: 1px solid var(--aelbry-border); color: var(--aelbry-text);';
+        wrapper.innerHTML = `<div class="p-2 rounded" style="max-width: 80%; ${bubbleStyle}">${html}</div>`;
         container.appendChild(wrapper);
         container.scrollTop = container.scrollHeight;
         return wrapper;

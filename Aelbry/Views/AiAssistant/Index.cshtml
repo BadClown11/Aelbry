@@ -13,6 +13,20 @@
 <div class="tab-content">
     <!-- MINICHAT -->
     <div class="tab-pane fade show active" id="tabChat">
+        <div class="aelbry-mascot-intro d-flex align-items-start gap-3 p-3 mb-3">
+            <partial name="_AelbeeMascot" model="3.0" />
+            <div>
+                <p class="mb-1 fw-bold">
+                    Aelbee
+                    <span class="badge btn-ai-gradient" style="font-size: 0.6rem;">Asistente</span>
+                </p>
+                <p class="mb-0 small text-muted">
+                    Cuentame que actividades necesitas y te propongo un desglose (WBS) con pesos porcentuales
+                    listo para insertar en tu proyecto.
+                </p>
+            </div>
+        </div>
+
         <div class="card mb-3">
             <div class="card-body">
                 <h6>Destino de la sugerencia</h6>
@@ -58,7 +72,7 @@
                 <div id="chatMessages" class="mb-3" style="max-height: 480px; overflow-y: auto;"></div>
                 <div class="input-group">
                     <textarea class="form-control" id="chatPrompt" rows="2" placeholder="Ej: Crear proyecto para lanzar una app de e-commerce, con fases de diseno, desarrollo y lanzamiento"></textarea>
-                    <button class="btn btn-primary" onclick="AiAssistant.sendPrompt()">Enviar</button>
+                    <button class="btn btn-ai-gradient" onclick="AiAssistant.sendPrompt()">Enviar</button>
                 </div>
             </div>
         </div>

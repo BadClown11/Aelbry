@@ -220,3 +220,66 @@ a:hover {
 .aelbry-scroll {
     overflow-y: auto;
 }
+
+/* ---- Drawers (Offcanvas): patron para "panel de detalle" en vez de modal ----
+   Se usa para vistas de detalle mas largas (ej. Actividad) donde un modal se
+   siente estrecho; los formularios cortos siguen siendo modales normales. */
+.offcanvas {
+    background-color: var(--aelbry-surface);
+    color: var(--aelbry-text);
+}
+
+.offcanvas-header {
+    border-bottom: 1px solid var(--aelbry-border);
+}
+
+.offcanvas-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--aelbry-border);
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+/* ---- Boton con gradiente para acciones de IA (Asistente / Gemini) ---- */
+.btn-ai-gradient {
+    background: linear-gradient(135deg, #7c3aed, var(--aelbry-primary));
+    border: none;
+    color: #fff;
+}
+
+.btn-ai-gradient:hover {
+    background: linear-gradient(135deg, #6d28d9, var(--aelbry-primary-dark));
+    color: #fff;
+}
+
+/* ---- Mascota Aelbee (Asistente IA) ---- */
+@keyframes aelbee-float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-6px) rotate(3deg); }
+}
+
+@keyframes aelbee-wings {
+    0%, 100% { transform: scaleX(1); }
+    50% { transform: scaleX(0.4) skewY(-5deg); }
+}
+
+.aelbry-mascot {
+    animation: aelbee-float 2.5s ease-in-out infinite;
+    flex-shrink: 0;
+}
+
+.aelbry-mascot-wings {
+    transform-origin: center;
+    animation: aelbee-wings 0.15s ease-in-out infinite;
+}
+
+.aelbry-mascot-intro {
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.08), rgba(76, 110, 245, 0.08));
+    border: 1px solid var(--aelbry-border);
+    border-radius: var(--aelbry-radius);
+}
+
+[data-bs-theme="dark"] .aelbry-mascot-intro {
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.15), rgba(76, 110, 245, 0.12));
+}

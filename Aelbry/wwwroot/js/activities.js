@@ -3,7 +3,7 @@ window.Activities = (function () {
     const PRIORITY_LABELS = { 1: 'Baja', 2: 'Media', 3: 'Alta', 4: 'Critica' };
     const DEPENDENCY_LABELS = { 1: 'Fin a Inicio', 2: 'Inicio a Inicio', 3: 'Fin a Fin', 4: 'Inicio a Fin' };
 
-    let activityModal, checklistModal, dependenciesModal, participantsModal, activityTagsModal, timeModal;
+    let activityDrawer, checklistModal, dependenciesModal, participantsModal, activityTagsModal, timeModal;
     let companyId = null;
     let companyTags = [];
 
@@ -78,8 +78,8 @@ window.Activities = (function () {
         document.getElementById('activityEstimatedHours').value = '0';
         document.getElementById('activityWorkedHours').value = '0';
 
-        activityModal = activityModal || new bootstrap.Modal(document.getElementById('activityModal'));
-        activityModal.show();
+        activityDrawer = activityDrawer || new bootstrap.Offcanvas(document.getElementById('activityDrawer'));
+        activityDrawer.show();
     }
 
     async function openEdit(activityId) {
@@ -105,8 +105,8 @@ window.Activities = (function () {
         document.getElementById('activityEstimatedHours').value = a.estimatedHours;
         document.getElementById('activityWorkedHours').value = a.workedHours;
 
-        activityModal = activityModal || new bootstrap.Modal(document.getElementById('activityModal'));
-        activityModal.show();
+        activityDrawer = activityDrawer || new bootstrap.Offcanvas(document.getElementById('activityDrawer'));
+        activityDrawer.show();
     }
 
     async function save() {
@@ -139,7 +139,7 @@ window.Activities = (function () {
             : await Aelbry.api.post('/Activity/Create', payload);
 
         if (result.result === 'OK') {
-            bootstrap.Modal.getInstance(document.getElementById('activityModal'))?.hide();
+            bootstrap.Offcanvas.getInstance(document.getElementById('activityDrawer'))?.hide();
             loadAll();
         } else {
             alert(result.result);
