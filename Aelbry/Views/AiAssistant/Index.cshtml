@@ -1,0 +1,94 @@
+@{
+    ViewData["Title"] = "Asistente IA";
+}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4>Asistente IA</h4>
+</div>
+
+<ul class="nav nav-tabs mb-3" id="aiTabs">
+    <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabChat">Asistente IA (minichat)</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabBulk">Creacion masiva por texto</button></li>
+</ul>
+
+<div class="tab-content">
+    <!-- MINICHAT -->
+    <div class="tab-pane fade show active" id="tabChat">
+        <div class="card mb-3">
+            <div class="card-body">
+                <h6>Destino de la sugerencia</h6>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="aiTarget" id="targetExisting" value="existing" checked onchange="AiAssistant.toggleTarget()" />
+                    <label class="form-check-label" for="targetExisting">Proyecto existente</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="aiTarget" id="targetNew" value="new" onchange="AiAssistant.toggleTarget()" />
+                    <label class="form-check-label" for="targetNew">Nuevo proyecto</label>
+                </div>
+
+                <div id="targetExistingFields" class="row mt-2">
+                    <div class="col-md-4">
+                        <label class="form-label">ID de proyecto</label>
+                        <input type="number" class="form-control" id="aiExistingProjectId" />
+                    </div>
+                </div>
+
+                <div id="targetNewFields" class="row mt-2 d-none">
+                    <div class="col-md-3">
+                        <label class="form-label">ID de empresa</label>
+                        <input type="number" class="form-control" id="aiNewCompanyId" onchange="AiAssistant.loadStatuses()" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Codigo del proyecto</label>
+                        <input class="form-control" id="aiNewProjectCode" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Nombre del proyecto</label>
+                        <input class="form-control" id="aiNewProjectName" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Estado inicial</label>
+                        <select class="form-select" id="aiNewProjectStatusId"></select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <div id="chatMessages" class="mb-3" style="max-height: 480px; overflow-y: auto;"></div>
+                <div class="input-group">
+                    <textarea class="form-control" id="chatPrompt" rows="2" placeholder="Ej: Crear proyecto para lanzar una app de e-commerce, con fases de diseno, desarrollo y lanzamiento"></textarea>
+                    <button class="btn btn-primary" onclick="AiAssistant.sendPrompt()">Enviar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CREACION MASIVA -->
+    <div class="tab-pane fade" id="tabBulk">
+        <div class="card">
+            <div class="card-body">
+                <div class="row mb-2">
+                    <div class="col-md-4">
+                        <label class="form-label">ID de proyecto</label>
+                        <input type="number" class="form-control" id="bulkProjectId" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">ID de actividad padre (opcional)</label>
+                        <input type="number" class="form-control" id="bulkParentActivityId" />
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">Pega una lista, una actividad por linea</label>
+                    <textarea class="form-control" id="bulkLines" rows="10" placeholder="Diseno de wireframes&#10;Definicion de arquitectura&#10;Configuracion de CI/CD&#10;..."></textarea>
+                </div>
+                <button class="btn btn-primary" onclick="AiAssistant.bulkCreate()">Crear en lote</button>
+                <div id="bulkResult" class="mt-3"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/ai-assistant.js"></script>
+}

@@ -65,6 +65,16 @@ namespace Aelbry.Web.Controllers
             return Exec(() => _activityBL.Delete(activityId, CurrentUserId));
         }
 
+        /// <summary>
+        /// Creacion masiva por texto rapido (Modulo 4): una actividad por cada linea no vacia.
+        /// </summary>
+        [HttpPost]
+        [Authorize(Policy = "Permission:ACTIVITIES_CREATE")]
+        public JsonResult BulkCreate([FromBody] BulkCreateActivitiesRequest request)
+        {
+            return Exec(() => _activityBL.BulkCreate(request.ProjectId, request.ParentActivityId, request.Lines, CurrentUserId));
+        }
+
         [HttpGet]
         [Authorize(Policy = "Permission:ACTIVITIES_VIEW")]
         public JsonResult GetParticipants(int activityId)

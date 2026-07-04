@@ -55,6 +55,41 @@ namespace Aelbry.BL
             }
         }
 
+        /// <summary>
+        /// Creacion masiva por texto rapido (Modulo 4): una actividad por cada linea no vacia,
+        /// reutilizando Create() para conservar la generacion de codigo y el recalculo en cascada.
+        /// </summary>
+        public List<int> BulkCreate(int projectId, int? parentActivityId, IEnumerable<string> lines, int createdBy)
+        {
+            var createdIds = new List<int>();
+
+            foreach (var line in lines)
+            {
+                string name = line?.Trim();
+                if (string.IsNullOrEmpty(name))
+                {
+                    continue;
+                }
+
+                var activity = new Activity
+                {
+                    ProjectId = projectId,
+                    ParentActivityId = parentActivityId,
+                    Name = name,
+                    ColorHex = "#4C6EF5",
+                    Status = ActivityStatus.Pending,
+                    Priority = ProjectPriority.Medium,
+                    ResponsibleUserId = createdBy,
+                    Weight = 1,
+                    CreatedBy = createdBy,
+                };
+
+                createdIds.Add(Create(activity));
+            }
+
+            return createdIds;
+        }
+
         public void Update(Activity activity)
         {
             using (var dal = ActivityDAL.Instance)

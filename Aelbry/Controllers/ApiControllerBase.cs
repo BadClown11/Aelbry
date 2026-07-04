@@ -45,6 +45,27 @@ namespace Aelbry.Web.Controllers
             return Json(result);
         }
 
+        /// <summary>
+        /// Misma envoltura Result/try-catch que Exec, para las llamadas async a servicios
+        /// externos (ej. la API de Gemini) que no pueden bloquearse con .Result/.Wait().
+        /// </summary>
+        protected async Task<JsonResult> ExecAsync<T>(Func<Task<T>> action)
+        {
+            var result = new Result();
+
+            try
+            {
+                result.result = C.OK;
+                result.data = await action();
+            }
+            catch (Exception ex)
+            {
+                result.result = ex.Message;
+            }
+
+            return Json(result);
+        }
+
         protected string ClientIp => HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
 
         protected int CurrentUserId =>
