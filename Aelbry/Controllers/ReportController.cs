@@ -73,5 +73,46 @@ namespace Aelbry.Web.Controllers
         {
             return Exec(() => _reportBL.GetBurndown(companyId, projectId, startDate, endDate));
         }
+
+        [HttpGet]
+        [Authorize(Policy = "Permission:REPORTS_VIEW")]
+        public IActionResult ExportExcel(int companyId, int? projectId, int? userId, int? teamId, int? departmentId, DateTime? startDate, DateTime? endDate)
+        {
+            var filter = BuildFilter(companyId, projectId, userId, teamId, departmentId, startDate, endDate);
+            var bytes = _reportBL.ExportWeeklyReportToExcel(filter, "Reporte semanal de actividades");
+            return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "ReporteSemanal.xlsx");
+        }
+
+        [HttpGet]
+        [Authorize(Policy = "Permission:REPORTS_VIEW")]
+        public IActionResult ExportWord(int companyId, int? projectId, int? userId, int? teamId, int? departmentId, DateTime? startDate, DateTime? endDate)
+        {
+            var filter = BuildFilter(companyId, projectId, userId, teamId, departmentId, startDate, endDate);
+            var bytes = _reportBL.ExportWeeklyReportToWord(filter, "Reporte semanal de actividades");
+            return File(bytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "ReporteSemanal.docx");
+        }
+
+        [HttpGet]
+        [Authorize(Policy = "Permission:REPORTS_VIEW")]
+        public IActionResult ExportPdf(int companyId, int? projectId, int? userId, int? teamId, int? departmentId, DateTime? startDate, DateTime? endDate)
+        {
+            var filter = BuildFilter(companyId, projectId, userId, teamId, departmentId, startDate, endDate);
+            var bytes = _reportBL.ExportWeeklyReportToPdf(filter, "Reporte semanal de actividades");
+            return File(bytes, "application/pdf", "ReporteSemanal.pdf");
+        }
+
+        private static ReportFilter BuildFilter(int companyId, int? projectId, int? userId, int? teamId, int? departmentId, DateTime? startDate, DateTime? endDate)
+        {
+            return new ReportFilter
+            {
+                CompanyId = companyId,
+                ProjectId = projectId,
+                UserId = userId,
+                TeamId = teamId,
+                DepartmentId = departmentId,
+                StartDate = startDate,
+                EndDate = endDate,
+            };
+        }
     }
 }

@@ -35,6 +35,25 @@ Aelbry.ui = (function () {
         });
     }
 
+    /* Descarga endpoints que devuelven un archivo binario (no JSON): como el JWT vive en
+       sessionStorage y no en una cookie, un <a href> normal no lo manda, asi que se hace
+       fetch manual con el header Authorization y se fuerza la descarga via Blob. */
+    async function downloadBlob(url, suggestedName) {
+        const token = Aelbry.api.getAccessToken();
+        const response = await fetch(url, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+        if (!response.ok) { alert('No se pudo descargar el archivo'); return; }
+
+        const blob = await response.blob();
+        const objectUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = objectUrl;
+        a.download = suggestedName || 'archivo';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(objectUrl);
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         applyTheme(getTheme());
 
@@ -46,5 +65,5 @@ Aelbry.ui = (function () {
         initSelect2(document);
     });
 
-    return { getTheme, applyTheme, toggleTheme, initSelect2 };
+    return { getTheme, applyTheme, toggleTheme, initSelect2, downloadBlob };
 })();

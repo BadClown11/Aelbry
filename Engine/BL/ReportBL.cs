@@ -1,3 +1,4 @@
+using Aelbry.BL.Export;
 using Aelbry.BO;
 using Aelbry.BO.Reports;
 using Aelbry.DAL;
@@ -122,6 +123,21 @@ namespace Aelbry.BL
 
                 return BurndownCalculator.Calculate(snapshots, startDate, endDate);
             }
+        }
+
+        public byte[] ExportWeeklyReportToExcel(ReportFilter filter, string title)
+        {
+            return ExcelReportExporter.Export(GetWeeklyReport(filter), title);
+        }
+
+        public byte[] ExportWeeklyReportToWord(ReportFilter filter, string title)
+        {
+            return WordReportExporter.Export(GetWeeklyReport(filter), title);
+        }
+
+        public byte[] ExportWeeklyReportToPdf(ReportFilter filter, string title)
+        {
+            return PdfReportExporter.Export(GetWeeklyReport(filter), title);
         }
 
         private static bool IsWithin(DateTime? date, DateTime start, DateTime end)

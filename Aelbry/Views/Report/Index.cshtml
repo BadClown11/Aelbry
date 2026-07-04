@@ -3,6 +3,11 @@
 }
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h4>Reportes & KPIs</h4>
+    <div class="d-flex gap-2">
+        <button class="btn btn-outline-secondary btn-sm" onclick="Reports.exportReport('Excel')">Exportar Excel</button>
+        <button class="btn btn-outline-secondary btn-sm" onclick="Reports.exportReport('Word')">Exportar Word</button>
+        <button class="btn btn-outline-secondary btn-sm" onclick="Reports.exportReport('Pdf')">Exportar PDF</button>
+    </div>
 </div>
 
 <div class="card mb-3">

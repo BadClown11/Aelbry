@@ -216,24 +216,8 @@ window.DocFiles = (function () {
         });
     }
 
-    async function downloadBlob(url, suggestedName) {
-        const token = Aelbry.api.getAccessToken();
-        const response = await fetch(url, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
-        if (!response.ok) { alert('No se pudo descargar el archivo'); return; }
-
-        const blob = await response.blob();
-        const objectUrl = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = objectUrl;
-        a.download = suggestedName || 'archivo';
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(objectUrl);
-    }
-
     function downloadFile(fileAttachmentId) {
-        downloadBlob(`/File/DownloadLatest?fileAttachmentId=${fileAttachmentId}`);
+        Aelbry.ui.downloadBlob(`/File/DownloadLatest?fileAttachmentId=${fileAttachmentId}`);
     }
 
     async function uploadFile() {
@@ -290,7 +274,7 @@ window.DocFiles = (function () {
                 li.innerHTML = `<span>Version ${v.versionNumber} - ${v.originalFileName} - ${formatBytes(v.fileSizeBytes)} - ${new Date(v.uploadedDate).toLocaleString()}</span>
                     <button class="btn btn-sm btn-outline-secondary">Descargar</button>`;
                 li.querySelector('button').addEventListener('click', () => {
-                    downloadBlob(`/File/Download?fileAttachmentVersionId=${v.fileAttachmentVersionId}`, v.originalFileName);
+                    Aelbry.ui.downloadBlob(`/File/Download?fileAttachmentVersionId=${v.fileAttachmentVersionId}`, v.originalFileName);
                 });
                 rows.appendChild(li);
             });

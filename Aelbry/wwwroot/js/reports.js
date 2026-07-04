@@ -170,10 +170,21 @@ window.Reports = (function () {
         });
     }
 
+    async function exportReport(format) {
+        const params = commonFilters();
+        const start = document.getElementById('weeklyStartDate').value;
+        const end = document.getElementById('weeklyEndDate').value;
+        if (start) params.set('startDate', start);
+        if (end) params.set('endDate', end);
+
+        const extensions = { Excel: 'xlsx', Word: 'docx', Pdf: 'pdf' };
+        await Aelbry.ui.downloadBlob(`/Report/Export${format}?${params.toString()}`, `ReporteSemanal.${extensions[format]}`);
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         if (!document.getElementById('kpiWeekStart')) return;
         document.getElementById('kpiWeekStart').value = mondayOfCurrentWeek();
     });
 
-    return { loadAll, loadWeekly, loadKpis, loadCharts, loadBurndown };
+    return { loadAll, loadWeekly, loadKpis, loadCharts, loadBurndown, exportReport };
 })();
