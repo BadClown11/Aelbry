@@ -3,19 +3,22 @@ window.Activities = (function () {
     const PRIORITY_LABELS = { 1: 'Baja', 2: 'Media', 3: 'Alta', 4: 'Critica' };
     const DEPENDENCY_LABELS = { 1: 'Fin a Inicio', 2: 'Inicio a Inicio', 3: 'Fin a Fin', 4: 'Inicio a Fin' };
 
-    let activityDrawer, checklistModal, dependenciesModal, participantsModal, activityTagsModal, timeModal;
+    let activityModal, checklistModal, dependenciesModal, participantsModal, activityTagsModal, timeModal;
     let companyId = null;
     let companyTags = [];
     let companyUsers = [];
+    let myTeamId = null;
+    let myIsEmpleado = false;
 
     function projectId() {
         return document.getElementById('filterProjectId').value;
     }
 
-    function populateUserSelect(select, placeholder) {
+    function populateUserSelect(select, placeholder, list) {
+        const users = list ?? companyUsers;
         const previousValue = select.value;
         select.innerHTML = `<option value="">${placeholder}</option>`;
-        companyUsers.forEach((u) => {
+        users.forEach((u) => {
             const opt = document.createElement('option');
             opt.value = u.userId;
             opt.textContent = `${u.firstName} ${u.lastName}`;
@@ -43,6 +46,13 @@ window.Activities = (function () {
             companyTags = tagsResult.result === 'OK' ? tagsResult.data : [];
             const usersResult = await Aelbry.api.get(`/User/GetByCompany?companyId=${companyId}`);
             companyUsers = usersResult.result === 'OK' ? usersResult.data : [];
+        }
+
+        const me = Aelbry.api.getCurrentUser();
+        if (me) {
+            myIsEmpleado = (me.roles ?? []).includes('Empleado');
+            const meResult = await Aelbry.api.get(`/User/GetById?userId=${me.userId}`);
+            myTeamId = meResult.result === 'OK' ? meResult.data.teamId : null;
         }
 
         const result = await Aelbry.api.get(`/Activity/GetTreeByProject?projectId=${pid}`);
@@ -102,9 +112,10 @@ window.Activities = (function () {
         document.getElementById('activityActualEnd').value = '';
         document.getElementById('activityEstimatedHours').value = '0';
         document.getElementById('activityWorkedHours').value = '0';
+        document.getElementById('activityProgressBanner').classList.add('d-none');
 
-        activityDrawer = activityDrawer || new bootstrap.Offcanvas(document.getElementById('activityDrawer'));
-        activityDrawer.show();
+        activityModal = activityModal || new bootstrap.Modal(document.getElementById('activityModal'));
+        activityModal.show();
     }
 
     async function openEdit(activityId) {
@@ -131,8 +142,13 @@ window.Activities = (function () {
         document.getElementById('activityEstimatedHours').value = a.estimatedHours;
         document.getElementById('activityWorkedHours').value = a.workedHours;
 
-        activityDrawer = activityDrawer || new bootstrap.Offcanvas(document.getElementById('activityDrawer'));
-        activityDrawer.show();
+        const progress = a.progressPercentage ?? 0;
+        document.getElementById('activityProgressBanner').classList.remove('d-none');
+        document.getElementById('activityProgressLabel').textContent = `${Math.round(progress)}%`;
+        document.getElementById('activityProgressBar').style.width = `${progress}%`;
+
+        activityModal = activityModal || new bootstrap.Modal(document.getElementById('activityModal'));
+        activityModal.show();
     }
 
     async function save() {
@@ -165,7 +181,7 @@ window.Activities = (function () {
             : await Aelbry.api.post('/Activity/Create', payload);
 
         if (result.result === 'OK') {
-            bootstrap.Offcanvas.getInstance(document.getElementById('activityDrawer'))?.hide();
+            bootstrap.Modal.getInstance(document.getElementById('activityModal'))?.hide();
             loadAll();
         } else {
             alert(result.result);
@@ -365,9 +381,32 @@ window.Activities = (function () {
     }
 
     // ---- Participantes ----
+    // Una subactividad solo puede tener como participantes a quienes ya
+    // participan en su actividad padre; un Empleado normal (sin permisos
+    // de gestion mas amplios) solo puede elegir gente de su propio equipo
+    // (esto incluye a su lider, ya que comparte el mismo equipo) al asignar
+    // participantes de una actividad raiz.
+    async function getParticipantCandidates(activityId) {
+        const detailResult = await Aelbry.api.get(`/Activity/GetById?activityId=${activityId}`);
+        const parentActivityId = detailResult.result === 'OK' ? detailResult.data.parentActivityId : null;
+
+        if (parentActivityId) {
+            const parentResult = await Aelbry.api.get(`/Activity/GetParticipants?activityId=${parentActivityId}`);
+            return parentResult.result === 'OK' ? parentResult.data : [];
+        }
+
+        if (myIsEmpleado && myTeamId) {
+            const teamResult = await Aelbry.api.get(`/User/GetByTeam?teamId=${myTeamId}`);
+            return teamResult.result === 'OK' ? teamResult.data : [];
+        }
+
+        return companyUsers;
+    }
+
     async function openParticipants(activityId) {
         document.getElementById('participantsActivityId').value = activityId;
-        populateUserSelect(document.getElementById('newParticipantUserId'), '-- Selecciona una persona --');
+        const candidates = await getParticipantCandidates(activityId);
+        populateUserSelect(document.getElementById('newParticipantUserId'), '-- Selecciona una persona --', candidates);
         await reloadParticipants();
         participantsModal = participantsModal || new bootstrap.Modal(document.getElementById('participantsModal'));
         participantsModal.show();

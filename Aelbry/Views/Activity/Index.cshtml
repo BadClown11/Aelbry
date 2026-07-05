@@ -30,98 +30,122 @@
     </div>
 </div>
 
-<!-- Drawer: Actividad (Offcanvas en vez de modal, para el detalle mas largo) -->
-<div class="offcanvas offcanvas-end" tabindex="-1" id="activityDrawer" style="width: 560px;">
-    <div class="offcanvas-header">
-        <h5 class="offcanvas-title" id="activityModalTitle">Actividad</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
-    </div>
-    <div class="offcanvas-body">
-        <input type="hidden" id="activityId" />
-        <input type="hidden" id="activityParentId" />
-        <div class="row">
-            <div class="col-md-8 mb-2">
-                <label class="form-label">Nombre</label>
-                <input class="form-control" id="activityName" />
+<!-- Modal: Actividad -->
+<div class="modal fade" id="activityModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="activityModalTitle">Actividad</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="col-md-2 mb-2">
-                <label class="form-label">Color</label>
-                <input type="color" class="form-control form-control-color" id="activityColor" value="#4C6EF5" />
+            <div class="modal-body">
+                <input type="hidden" id="activityId" />
+                <input type="hidden" id="activityParentId" />
+
+                <div id="activityProgressBanner" class="d-none mb-4">
+                    <div class="d-flex justify-content-between align-items-center small text-muted mb-1">
+                        <span><i data-lucide="trending-up" style="width:14px;height:14px;"></i> Avance (automatico segun subactividades)</span>
+                        <span class="fw-semibold" id="activityProgressLabel">0%</span>
+                    </div>
+                    <div class="progress" style="height:8px;">
+                        <div class="progress-bar bg-success" id="activityProgressBar" style="width:0%"></div>
+                    </div>
+                </div>
+
+                <h6 class="text-uppercase text-muted small fw-bold mb-3">Informacion general</h6>
+                <div class="row">
+                    <div class="col-md-8 mb-3">
+                        <label class="form-label">Nombre</label>
+                        <input class="form-control" id="activityName" />
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <label class="form-label">Color</label>
+                        <input type="color" class="form-control form-control-color w-100" id="activityColor" value="#4C6EF5" />
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <label class="form-label">Peso</label>
+                        <input type="number" step="0.01" class="form-control" id="activityWeight" value="1" />
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Descripcion</label>
+                    <textarea class="form-control" id="activityDescription" rows="2"></textarea>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Categoria</label>
+                        <input class="form-control" id="activityCategory" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Estado</label>
+                        <select class="form-select" id="activityStatus">
+                            <option value="1">Pendiente</option>
+                            <option value="2">En Progreso</option>
+                            <option value="3">Bloqueada</option>
+                            <option value="4">Completada</option>
+                            <option value="5">Cancelada</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Prioridad</label>
+                        <select class="form-select" id="activityPriority">
+                            <option value="1">Baja</option>
+                            <option value="2" selected>Media</option>
+                            <option value="3">Alta</option>
+                            <option value="4">Critica</option>
+                        </select>
+                    </div>
+                </div>
+
+                <hr class="my-4" />
+                <h6 class="text-uppercase text-muted small fw-bold mb-3">Responsable</h6>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <select class="form-select" id="activityResponsibleId">
+                            <option value="">-- Selecciona un responsable --</option>
+                        </select>
+                    </div>
+                </div>
+
+                <hr class="my-4" />
+                <h6 class="text-uppercase text-muted small fw-bold mb-3">Fechas</h6>
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Estimada inicio</label>
+                        <input type="date" class="form-control" id="activityEstStart" />
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Estimada fin</label>
+                        <input type="date" class="form-control" id="activityEstEnd" />
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Real inicio</label>
+                        <input type="date" class="form-control" id="activityActualStart" />
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Real fin</label>
+                        <input type="date" class="form-control" id="activityActualEnd" />
+                    </div>
+                </div>
+
+                <hr class="my-4" />
+                <h6 class="text-uppercase text-muted small fw-bold mb-3">Horas</h6>
+                <div class="row">
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label">Estimadas</label>
+                        <input type="number" step="0.01" class="form-control" id="activityEstimatedHours" value="0" />
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label">Trabajadas</label>
+                        <input type="number" step="0.01" class="form-control" id="activityWorkedHours" value="0" />
+                    </div>
+                </div>
             </div>
-            <div class="col-md-2 mb-2">
-                <label class="form-label">Peso</label>
-                <input type="number" step="0.01" class="form-control" id="activityWeight" value="1" />
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button class="btn btn-primary" onclick="Activities.save()">Guardar</button>
             </div>
         </div>
-        <div class="mb-2">
-            <label class="form-label">Descripcion</label>
-            <textarea class="form-control" id="activityDescription"></textarea>
-        </div>
-        <div class="row">
-            <div class="col-md-4 mb-2">
-                <label class="form-label">Categoria</label>
-                <input class="form-control" id="activityCategory" />
-            </div>
-            <div class="col-md-4 mb-2">
-                <label class="form-label">Estado</label>
-                <select class="form-select" id="activityStatus">
-                    <option value="1">Pendiente</option>
-                    <option value="2">En Progreso</option>
-                    <option value="3">Bloqueada</option>
-                    <option value="4">Completada</option>
-                    <option value="5">Cancelada</option>
-                </select>
-            </div>
-            <div class="col-md-4 mb-2">
-                <label class="form-label">Prioridad</label>
-                <select class="form-select" id="activityPriority">
-                    <option value="1">Baja</option>
-                    <option value="2" selected>Media</option>
-                    <option value="3">Alta</option>
-                    <option value="4">Critica</option>
-                </select>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-6 mb-2">
-                <label class="form-label">Responsable</label>
-                <select class="form-select" id="activityResponsibleId">
-                    <option value="">-- Selecciona un responsable --</option>
-                </select>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-3 mb-2">
-                <label class="form-label">Fecha estimada inicio</label>
-                <input type="date" class="form-control" id="activityEstStart" />
-            </div>
-            <div class="col-md-3 mb-2">
-                <label class="form-label">Fecha estimada fin</label>
-                <input type="date" class="form-control" id="activityEstEnd" />
-            </div>
-            <div class="col-md-3 mb-2">
-                <label class="form-label">Fecha real inicio</label>
-                <input type="date" class="form-control" id="activityActualStart" />
-            </div>
-            <div class="col-md-3 mb-2">
-                <label class="form-label">Fecha real fin</label>
-                <input type="date" class="form-control" id="activityActualEnd" />
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-6 mb-2">
-                <label class="form-label">Horas estimadas</label>
-                <input type="number" step="0.01" class="form-control" id="activityEstimatedHours" value="0" />
-            </div>
-            <div class="col-md-6 mb-2">
-                <label class="form-label">Horas trabajadas</label>
-                <input type="number" step="0.01" class="form-control" id="activityWorkedHours" value="0" />
-            </div>
-        </div>
-    </div>
-    <div class="offcanvas-footer">
-        <button class="btn btn-secondary" data-bs-dismiss="offcanvas">Cancelar</button>
-        <button class="btn btn-primary" onclick="Activities.save()">Guardar</button>
     </div>
 </div>
 

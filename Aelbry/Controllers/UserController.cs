@@ -36,6 +36,13 @@ namespace Aelbry.Web.Controllers
             return Exec(() => _userBL.GetById(userId));
         }
 
+        [HttpGet]
+        [Authorize(Policy = "Permission:USERS_VIEW")]
+        public JsonResult GetByTeam(int teamId)
+        {
+            return Exec(() => _userBL.GetByTeam(teamId));
+        }
+
         [HttpPost]
         [Authorize(Policy = "Permission:USERS_CREATE")]
         public JsonResult Create([FromBody] UserCreateRequest request)

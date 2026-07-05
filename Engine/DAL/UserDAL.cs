@@ -35,6 +35,27 @@ namespace Aelbry.DAL
             return list;
         }
 
+        public List<User> GetByTeam(int teamId)
+        {
+            var list = new List<User>();
+            const string sSp = "SP_USER_GET_BY_TEAM";
+
+            using (var cmd = CreateStoredProcCommand(sSp, conn, txn))
+            {
+                cmd.Parameters.Add(CreateParameter("@P_TEAM_ID", teamId));
+
+                using (IDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        list.Add(MapUser(reader));
+                    }
+                }
+            }
+
+            return list;
+        }
+
         public User GetById(int userId)
         {
             User user = null;

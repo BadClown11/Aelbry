@@ -22,6 +22,14 @@ namespace Aelbry.BL
             }
         }
 
+        public List<User> GetByTeam(int teamId)
+        {
+            using (var dal = UserDAL.Instance)
+            {
+                return dal.GetByTeam(teamId);
+            }
+        }
+
         public int Create(User user, string plainPassword)
         {
             user.PasswordHash = PasswordHasher.Hash(plainPassword);
