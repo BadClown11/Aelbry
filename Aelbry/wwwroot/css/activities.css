@@ -1,0 +1,148 @@
+/* Actividades (WBS): tabla en forma de arbol, estilo Jira/ProofHub */
+
+#activityTable {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+#activityTable thead th {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--aelbry-text-muted);
+    border-bottom: 1px solid var(--aelbry-border);
+    font-weight: 700;
+}
+
+#activityRows tr {
+    transition: background-color 0.1s ease;
+}
+
+#activityRows tr:hover {
+    background-color: var(--aelbry-surface-alt);
+}
+
+#activityRows td {
+    vertical-align: middle;
+    padding-top: 0.6rem;
+    padding-bottom: 0.6rem;
+}
+
+.wbs-tree-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    white-space: nowrap;
+}
+
+.wbs-indent {
+    flex: 0 0 auto;
+    display: inline-block;
+    width: 1.35rem;
+}
+
+.wbs-toggle {
+    width: 1.35rem;
+    height: 1.35rem;
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    color: var(--aelbry-text-muted);
+    cursor: pointer;
+    border-radius: 0.3rem;
+    font-size: 0.7rem;
+    line-height: 1;
+}
+
+.wbs-toggle:hover {
+    background-color: var(--aelbry-primary-light);
+    color: var(--aelbry-primary-dark);
+}
+
+.wbs-code-badge {
+    font-weight: 700;
+    font-size: 0.68rem;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    color: #fff;
+    white-space: nowrap;
+}
+
+.wbs-name-cell {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.25;
+}
+
+.wbs-name {
+    font-weight: 600;
+    color: var(--aelbry-text);
+}
+
+.wbs-category {
+    font-size: 0.72rem;
+    color: var(--aelbry-text-muted);
+}
+
+.wbs-badge {
+    font-size: 0.7rem;
+    padding: 0.3rem 0.65rem;
+    border-radius: 999px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.wbs-responsible {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+}
+
+.wbs-avatar {
+    width: 1.6rem;
+    height: 1.6rem;
+    border-radius: 50%;
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.wbs-progress {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-width: 120px;
+}
+
+.wbs-progress .progress {
+    flex: 1;
+    height: 6px;
+    background-color: var(--aelbry-surface-alt);
+}
+
+.wbs-progress-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--aelbry-text-muted);
+    min-width: 2.3rem;
+    text-align: right;
+}
+
+.wbs-actions .btn {
+    border: none;
+    color: var(--aelbry-text-muted);
+}
+
+.wbs-actions .btn:hover,
+.wbs-actions .btn:focus {
+    background-color: var(--aelbry-surface-alt);
+    color: var(--aelbry-primary);
+}

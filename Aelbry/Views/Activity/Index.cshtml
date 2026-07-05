@@ -2,33 +2,37 @@
     ViewData["Title"] = "Actividades";
 }
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h4>Actividades (WBS)</h4>
+    <h4 class="mb-0">Actividades (WBS)</h4>
     <div class="d-flex gap-2">
         <input type="number" id="filterProjectId" class="form-control form-control-sm" placeholder="ID de proyecto" style="width: 160px" />
         <button class="btn btn-outline-secondary btn-sm" onclick="Activities.loadAll()">Buscar</button>
-        <button class="btn btn-primary btn-sm" onclick="Activities.openCreate(null)">Nueva actividad raiz</button>
+        <button class="btn btn-primary btn-sm" onclick="Activities.openCreate(null)">+ Nueva actividad raiz</button>
     </div>
 </div>
 
 <div class="card">
-    <div class="card-body">
-        <table class="table align-middle">
+    <div class="card-body p-0">
+        <table class="table align-middle mb-0" id="activityTable">
             <thead>
                 <tr>
-                    <th>Codigo</th>
+                    <th class="ps-3">Codigo</th>
                     <th>Nombre</th>
                     <th>Estado</th>
                     <th>Prioridad</th>
                     <th>Responsable</th>
-                    <th>Peso</th>
+                    <th class="text-center">Peso</th>
                     <th>Avance</th>
-                    <th></th>
+                    <th class="text-end pe-3"></th>
                 </tr>
             </thead>
             <tbody id="activityRows"></tbody>
         </table>
     </div>
 </div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/activities.css" asp-append-version="true" />
+}
 
 <!-- Modal: Actividad -->
 <div class="modal fade" id="activityModal" tabindex="-1">

@@ -1,7 +1,10 @@
 window.Activities = (function () {
     const STATUS_LABELS = { 1: 'Pendiente', 2: 'En Progreso', 3: 'Bloqueada', 4: 'Completada', 5: 'Cancelada' };
+    const STATUS_BADGES = { 1: 'text-bg-secondary', 2: 'text-bg-primary', 3: 'text-bg-danger', 4: 'text-bg-success', 5: 'text-bg-dark' };
     const PRIORITY_LABELS = { 1: 'Baja', 2: 'Media', 3: 'Alta', 4: 'Critica' };
+    const PRIORITY_BADGES = { 1: 'text-bg-secondary', 2: 'text-bg-info', 3: 'text-bg-warning', 4: 'text-bg-danger' };
     const DEPENDENCY_LABELS = { 1: 'Fin a Inicio', 2: 'Inicio a Inicio', 3: 'Fin a Fin', 4: 'Inicio a Fin' };
+    const AVATAR_PALETTE = ['#4C6EF5', '#2F9E44', '#F59F00', '#7048E8', '#E03131', '#12B886', '#E8590C', '#1971C2'];
 
     let activityModal, checklistModal, dependenciesModal, participantsModal, activityTagsModal, timeModal;
     let companyId = null;
@@ -9,6 +12,25 @@ window.Activities = (function () {
     let companyUsers = [];
     let myTeamId = null;
     let myIsEmpleado = false;
+    let lastTreeData = [];
+    const collapsedIds = new Set();
+
+    function avatarColor(name) {
+        let hash = 0;
+        for (let i = 0; i < (name ?? '').length; i++) {
+            hash = (hash * 31 + name.charCodeAt(i)) % AVATAR_PALETTE.length;
+        }
+        return AVATAR_PALETTE[Math.abs(hash)];
+    }
+
+    function initials(name) {
+        return (name ?? '')
+            .split(' ')
+            .filter(Boolean)
+            .slice(0, 2)
+            .map((p) => p[0].toUpperCase())
+            .join('');
+    }
 
     function projectId() {
         return document.getElementById('filterProjectId').value;
@@ -57,39 +79,93 @@ window.Activities = (function () {
 
         const result = await Aelbry.api.get(`/Activity/GetTreeByProject?projectId=${pid}`);
         console.log('[Actividades] GetTreeByProject ->', result);
+
+        if (result.result !== 'OK') { lastTreeData = []; renderTree(); return; }
+
+        lastTreeData = result.data;
+        renderTree();
+    }
+
+    function renderTree() {
         const rows = document.getElementById('activityRows');
         rows.innerHTML = '';
+        lastTreeData.forEach((a) => renderActivityRow(rows, a, 0));
+    }
 
-        if (result.result !== 'OK') return;
-
-        result.data.forEach((a) => renderActivityRow(rows, a, 0));
+    function toggleCollapse(activityId) {
+        if (collapsedIds.has(activityId)) {
+            collapsedIds.delete(activityId);
+        } else {
+            collapsedIds.add(activityId);
+        }
+        renderTree();
     }
 
     function renderActivityRow(container, a, depth) {
+        const hasChildren = (a.children ?? []).length > 0;
+        const isCollapsed = collapsedIds.has(a.activityId);
+        const progress = a.progressPercentage ?? 0;
+        const responsibleName = a.responsibleName ?? '';
+
+        const indent = '<span class="wbs-indent"></span>'.repeat(depth);
+        const toggle = hasChildren
+            ? `<button class="wbs-toggle" onclick="Activities.toggleCollapse(${a.activityId})" title="${isCollapsed ? 'Expandir' : 'Colapsar'}">${isCollapsed ? '&#9656;' : '&#9662;'}</button>`
+            : '<span class="wbs-indent"></span>';
+
         const tr = document.createElement('tr');
-        const indent = '&nbsp;&nbsp;&nbsp;&nbsp;'.repeat(depth) + (depth > 0 ? '&#8627; ' : '');
         tr.innerHTML = `
-            <td><span class="badge" style="background-color:${a.colorHex}">${a.code}</span></td>
-            <td>${indent}${a.name}</td>
-            <td>${STATUS_LABELS[a.status] ?? a.status}</td>
-            <td>${PRIORITY_LABELS[a.priority] ?? a.priority}</td>
-            <td>${a.responsibleName ?? ''}</td>
-            <td>${a.weight}</td>
-            <td>${a.progressPercentage ?? 0}%</td>
-            <td class="text-end text-nowrap">
-                <button class="btn btn-sm btn-outline-secondary" onclick="Activities.openCreate(${a.activityId})">+ Sub</button>
-                <button class="btn btn-sm btn-outline-secondary" onclick="Activities.openChecklist(${a.activityId})">Checklist</button>
-                <button class="btn btn-sm btn-outline-secondary" onclick="Activities.openTime(${a.activityId})">Tiempo</button>
-                <button class="btn btn-sm btn-outline-secondary" onclick="Activities.openDependencies(${a.activityId})">Dependencias</button>
-                <button class="btn btn-sm btn-outline-secondary" onclick="Activities.openParticipants(${a.activityId})">Participantes</button>
-                <button class="btn btn-sm btn-outline-secondary" onclick="Activities.openActivityTags(${a.activityId})">Etiquetas</button>
-                <button class="btn btn-sm btn-outline-secondary" onclick="Activities.duplicate(${a.activityId})">Duplicar</button>
-                <button class="btn btn-sm btn-outline-primary" onclick="Activities.openEdit(${a.activityId})">Editar</button>
-                <button class="btn btn-sm btn-outline-danger" onclick="Activities.remove(${a.activityId})">Eliminar</button>
+            <td class="ps-3">
+                <div class="wbs-tree-cell">
+                    ${indent}${toggle}
+                    <span class="wbs-code-badge" style="background-color:${a.colorHex}">${a.code}</span>
+                </div>
+            </td>
+            <td>
+                <div class="wbs-name-cell">
+                    <span class="wbs-name">${a.name}</span>
+                    ${a.category ? `<span class="wbs-category">${a.category}</span>` : ''}
+                </div>
+            </td>
+            <td><span class="badge rounded-pill wbs-badge ${STATUS_BADGES[a.status] ?? 'text-bg-secondary'}">${STATUS_LABELS[a.status] ?? a.status}</span></td>
+            <td><span class="badge rounded-pill wbs-badge ${PRIORITY_BADGES[a.priority] ?? 'text-bg-secondary'}">${PRIORITY_LABELS[a.priority] ?? a.priority}</span></td>
+            <td>
+                ${responsibleName ? `
+                <div class="wbs-responsible">
+                    <span class="wbs-avatar" style="background-color:${avatarColor(responsibleName)}">${initials(responsibleName)}</span>
+                    <span>${responsibleName}</span>
+                </div>` : '<span class="text-muted small">Sin asignar</span>'}
+            </td>
+            <td class="text-center">${a.weight}</td>
+            <td>
+                <div class="wbs-progress">
+                    <div class="progress">
+                        <div class="progress-bar bg-success" style="width:${progress}%"></div>
+                    </div>
+                    <span class="wbs-progress-label">${Math.round(progress)}%</span>
+                </div>
+            </td>
+            <td class="text-end pe-3 wbs-actions">
+                <div class="dropdown">
+                    <button class="btn btn-sm" data-bs-toggle="dropdown" aria-expanded="false">&#8942;</button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#" onclick="Activities.openCreate(${a.activityId});return false;">+ Subactividad</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="Activities.openChecklist(${a.activityId});return false;">Checklist</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="Activities.openTime(${a.activityId});return false;">Tiempo</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="Activities.openDependencies(${a.activityId});return false;">Dependencias</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="Activities.openParticipants(${a.activityId});return false;">Participantes</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="Activities.openActivityTags(${a.activityId});return false;">Etiquetas</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="Activities.duplicate(${a.activityId});return false;">Duplicar</a></li>
+                        <li><hr class="dropdown-divider" /></li>
+                        <li><a class="dropdown-item" href="#" onclick="Activities.openEdit(${a.activityId});return false;">Editar</a></li>
+                        <li><a class="dropdown-item text-danger" href="#" onclick="Activities.remove(${a.activityId});return false;">Eliminar</a></li>
+                    </ul>
+                </div>
             </td>`;
         container.appendChild(tr);
 
-        (a.children ?? []).forEach((child) => renderActivityRow(container, child, depth + 1));
+        if (hasChildren && !isCollapsed) {
+            a.children.forEach((child) => renderActivityRow(container, child, depth + 1));
+        }
     }
 
     // ---- Actividad ----
@@ -481,7 +557,7 @@ window.Activities = (function () {
     }
 
     return {
-        loadAll, openCreate, openEdit, save, remove, duplicate,
+        loadAll, toggleCollapse, openCreate, openEdit, save, remove, duplicate,
         openChecklist, addChecklistItem, toggleChecklistItem, deleteChecklistItem,
         openTime, startTimer, stopTimer,
         openDependencies, addDependency, removeDependency,
