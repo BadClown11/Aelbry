@@ -100,51 +100,54 @@
         <!-- Sidebar -->
         @await Html.PartialAsync("_Sidebar")
         <main class="workspace" id="main-workspace">
-            <section class="project-header" id="project-header">
-                <div class="project-header__inner">
-                    <div class="project-header__meta">
-                        <nav class="breadcrumb" aria-label="Ubicación">
-                            <span class="breadcrumb__item">Proyectos</span>
-                            <i data-lucide="chevron-right" class="breadcrumb__sep"></i>
-                            <span class="breadcrumb__item breadcrumb__item--current"
-                                  id="breadcrumb-project">@(ViewData["ProjectName"] ?? "—")</span>
-                        </nav>
-                        <div class="project-header__title-row">
-                            <h1 class="project-title" id="project-title">
-                                @(ViewData["ProjectName"] ?? "Selecciona un proyecto")
-                            </h1>
-                            <span class="status-badge status-badge--blue"
-                                  id="project-status">
-                                @(ViewData["ProjectStatus"] ?? "")
-                            </span>
-                        </div>
-                    </div>
-
-                    <div class="project-header__stats">
-                        <!-- Progreso ponderado -->
-                        <div class="progress-block">
-                            <div class="progress-block__labels">
-                                <span class="progress-block__label">Progreso Ponderado</span>
-                                <span class="progress-block__value" id="header-progress-label">0%</span>
-                            </div>
-                            <div class="progress-track">
-                                <div class="progress-fill" id="header-progress-bar" style="width:0%"></div>
+            @if (ViewData["HideProjectHeader"] as bool? != true)
+            {
+                <section class="project-header" id="project-header">
+                    <div class="project-header__inner">
+                        <div class="project-header__meta">
+                            <nav class="breadcrumb" aria-label="Ubicación">
+                                <span class="breadcrumb__item">Proyectos</span>
+                                <i data-lucide="chevron-right" class="breadcrumb__sep"></i>
+                                <span class="breadcrumb__item breadcrumb__item--current"
+                                      id="breadcrumb-project">@(ViewData["ProjectName"] ?? "—")</span>
+                            </nav>
+                            <div class="project-header__title-row">
+                                <h1 class="project-title" id="project-title">
+                                    @(ViewData["ProjectName"] ?? "Selecciona un proyecto")
+                                </h1>
+                                <span class="status-badge status-badge--blue"
+                                      id="project-status">
+                                    @(ViewData["ProjectStatus"] ?? "")
+                                </span>
                             </div>
                         </div>
 
-                        <!-- Horas -->
-                        <div class="hours-block">
-                            <p class="hours-block__label">Esfuerzo Estimado</p>
-                            <p class="hours-block__value">
-                                <span id="header-hours-estimated">—</span> hrs /
-                                <span class="hours-block__accent" id="header-hours-logged">— registradas</span>
-                            </p>
-                        </div>
-                        <div class="avatar-stack" id="team-avatars">
+                        <div class="project-header__stats">
+                            <!-- Progreso ponderado -->
+                            <div class="progress-block">
+                                <div class="progress-block__labels">
+                                    <span class="progress-block__label">Progreso Ponderado</span>
+                                    <span class="progress-block__value" id="header-progress-label">0%</span>
+                                </div>
+                                <div class="progress-track">
+                                    <div class="progress-fill" id="header-progress-bar" style="width:0%"></div>
+                                </div>
+                            </div>
+
+                            <!-- Horas -->
+                            <div class="hours-block">
+                                <p class="hours-block__label">Esfuerzo Estimado</p>
+                                <p class="hours-block__value">
+                                    <span id="header-hours-estimated">—</span> hrs /
+                                    <span class="hours-block__accent" id="header-hours-logged">— registradas</span>
+                                </p>
+                            </div>
+                            <div class="avatar-stack" id="team-avatars">
+                            </div>
                         </div>
                     </div>
-                </div>
-            </section>
+                </section>
+            }
             <div class="workspace__content" id="workspace-content">
                 @RenderBody()
             </div>

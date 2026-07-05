@@ -1,5 +1,5 @@
 <aside class="sidebar" id="sidebar">
-    <div class="sidebar__project-picker">
+    <div class="sidebar__project-picker" id="projectPicker">
         <label class="sidebar__section-label sidebar-label">Proyecto Activo</label>
         <select class="project-select" id="activeProjectSelect" onchange="onActiveProjectChange()">
             <option value="">— Seleccionar proyecto —</option>
@@ -197,6 +197,11 @@
         const activeProjectId = localStorage.getItem(ACTIVE_PROJECT_ID_KEY);
         const activeProjectName = localStorage.getItem(ACTIVE_PROJECT_NAME_KEY);
         const sidebar = document.getElementById('sidebar');
+        const projectPicker = document.getElementById('projectPicker');
+
+        // El Admin ve toda la empresa de una vez, no un proyecto a la vez: el selector
+        // "Proyecto Activo" no le sirve de nada, asi que ni se muestra.
+        projectPicker.style.display = isAdmin ? 'none' : '';
 
         if (!isAdmin && !activeProjectId) {
             sidebar.style.display = 'none';

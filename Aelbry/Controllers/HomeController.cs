@@ -9,6 +9,10 @@ namespace Aelbry.Web.Controllers
         [HttpGet]
         public IActionResult Index()
         {
+            // El Home nunca "trata sobre" un solo proyecto (muestra el feed de actividades
+            // completo, sin importar cual sea el proyecto activo), asi que el encabezado
+            // generico "Selecciona un proyecto" del shell no aplica aqui.
+            ViewData["HideProjectHeader"] = true;
             return View();
         }
 
