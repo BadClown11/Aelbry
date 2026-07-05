@@ -84,8 +84,10 @@
         </div>
         <div class="row">
             <div class="col-md-6 mb-2">
-                <label class="form-label">Responsable (ID de usuario)</label>
-                <input type="number" class="form-control" id="activityResponsibleId" />
+                <label class="form-label">Responsable</label>
+                <select class="form-select" id="activityResponsibleId">
+                    <option value="">-- Selecciona un responsable --</option>
+                </select>
             </div>
         </div>
         <div class="row">
@@ -186,7 +188,9 @@
             <div class="modal-body">
                 <input type="hidden" id="participantsActivityId" />
                 <div class="input-group mb-3">
-                    <input type="number" class="form-control" id="newParticipantUserId" placeholder="ID de usuario" />
+                    <select class="form-select" id="newParticipantUserId">
+                        <option value="">-- Selecciona una persona --</option>
+                    </select>
                     <button class="btn btn-outline-primary" onclick="Activities.addParticipant()">Agregar</button>
                 </div>
                 <ul class="list-group" id="participantRows"></ul>

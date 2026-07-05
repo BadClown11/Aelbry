@@ -6,9 +6,30 @@ window.Activities = (function () {
     let activityDrawer, checklistModal, dependenciesModal, participantsModal, activityTagsModal, timeModal;
     let companyId = null;
     let companyTags = [];
+    let companyUsers = [];
 
     function projectId() {
         return document.getElementById('filterProjectId').value;
+    }
+
+    function populateUserSelect(select, placeholder) {
+        const previousValue = select.value;
+        select.innerHTML = `<option value="">${placeholder}</option>`;
+        companyUsers.forEach((u) => {
+            const opt = document.createElement('option');
+            opt.value = u.userId;
+            opt.textContent = `${u.firstName} ${u.lastName}`;
+            select.appendChild(opt);
+        });
+        select.value = previousValue;
+        Aelbry.ui.initSelect2(select);
+    }
+
+    // Select2 no refleja los cambios hechos con select.value = x directamente:
+    // hay que disparar 'change' en jQuery para que la caja visible se actualice.
+    function setSelectValue(select, value) {
+        select.value = value ?? '';
+        if (window.jQuery) jQuery(select).trigger('change');
     }
 
     async function loadAll() {
@@ -20,6 +41,8 @@ window.Activities = (function () {
             companyId = projectResult.data.companyId;
             const tagsResult = await Aelbry.api.get(`/Tag/GetByCompany?companyId=${companyId}`);
             companyTags = tagsResult.result === 'OK' ? tagsResult.data : [];
+            const usersResult = await Aelbry.api.get(`/User/GetByCompany?companyId=${companyId}`);
+            companyUsers = usersResult.result === 'OK' ? usersResult.data : [];
         }
 
         const result = await Aelbry.api.get(`/Activity/GetTreeByProject?projectId=${pid}`);
@@ -71,7 +94,8 @@ window.Activities = (function () {
         document.getElementById('activityCategory').value = '';
         document.getElementById('activityStatus').value = '1';
         document.getElementById('activityPriority').value = '2';
-        document.getElementById('activityResponsibleId').value = '';
+        populateUserSelect(document.getElementById('activityResponsibleId'), '-- Selecciona un responsable --');
+        setSelectValue(document.getElementById('activityResponsibleId'), '');
         document.getElementById('activityEstStart').value = '';
         document.getElementById('activityEstEnd').value = '';
         document.getElementById('activityActualStart').value = '';
@@ -98,7 +122,8 @@ window.Activities = (function () {
         document.getElementById('activityCategory').value = a.category ?? '';
         document.getElementById('activityStatus').value = a.status;
         document.getElementById('activityPriority').value = a.priority;
-        document.getElementById('activityResponsibleId').value = a.responsibleUserId;
+        populateUserSelect(document.getElementById('activityResponsibleId'), '-- Selecciona un responsable --');
+        setSelectValue(document.getElementById('activityResponsibleId'), a.responsibleUserId);
         document.getElementById('activityEstStart').value = a.estimatedStartDate ? a.estimatedStartDate.substring(0, 10) : '';
         document.getElementById('activityEstEnd').value = a.estimatedEndDate ? a.estimatedEndDate.substring(0, 10) : '';
         document.getElementById('activityActualStart').value = a.actualStartDate ? a.actualStartDate.substring(0, 10) : '';
@@ -342,6 +367,7 @@ window.Activities = (function () {
     // ---- Participantes ----
     async function openParticipants(activityId) {
         document.getElementById('participantsActivityId').value = activityId;
+        populateUserSelect(document.getElementById('newParticipantUserId'), '-- Selecciona una persona --');
         await reloadParticipants();
         participantsModal = participantsModal || new bootstrap.Modal(document.getElementById('participantsModal'));
         participantsModal.show();
@@ -372,7 +398,7 @@ window.Activities = (function () {
 
         const result = await Aelbry.api.post(`/Activity/AddParticipant?activityId=${activityId}&userId=${userId}`);
         if (result.result === 'OK') {
-            document.getElementById('newParticipantUserId').value = '';
+            setSelectValue(document.getElementById('newParticipantUserId'), '');
             await reloadParticipants();
         } else {
             alert(result.result);
