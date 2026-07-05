@@ -23,6 +23,7 @@ window.Activities = (function () {
         }
 
         const result = await Aelbry.api.get(`/Activity/GetTreeByProject?projectId=${pid}`);
+        console.log('[Actividades] GetTreeByProject ->', result);
         const rows = document.getElementById('activityRows');
         rows.innerHTML = '';
 
@@ -423,3 +424,5 @@ window.Activities = (function () {
         openActivityTags, toggleActivityTag,
     };
 })();
+
+Aelbry.projectContext.autoLoad(Activities.loadAll);

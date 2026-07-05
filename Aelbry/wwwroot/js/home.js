@@ -61,6 +61,7 @@ window.Home = (function () {
         // devuelve las propias, sin exponer KPIs agregados de toda la empresa.
         if (!isGlobalView) {
             const weeklyResult = await Aelbry.api.get(`/Report/GetMyActivities?${params.toString()}`);
+            console.log('[Home] GetMyActivities ->', weeklyResult);
             renderRows(weeklyResult.result === 'OK' ? weeklyResult.data : []);
             document.getElementById('homeKpiRow').innerHTML = '';
             return;
@@ -70,6 +71,8 @@ window.Home = (function () {
             Aelbry.api.get(`/Report/GetWeeklyReport?${params.toString()}`),
             Aelbry.api.get(`/Report/GetKpiSummary?${params.toString()}&weekStart=${mondayOfCurrentWeek()}`),
         ]);
+        console.log('[Home] GetWeeklyReport ->', weeklyResult);
+        console.log('[Home] GetKpiSummary ->', kpiResult);
 
         renderRows(weeklyResult.result === 'OK' ? weeklyResult.data : []);
         renderKpis(kpiResult.result === 'OK' ? kpiResult.data : null);
@@ -146,8 +149,7 @@ window.Home = (function () {
     // Al elegir un proyecto (desde una fila del feed) se marca como "activo" para que el
     // sidebar se revele (ver _Sidebar.cshtml -> applyProjectGate) y se entra a su tablero.
     function enterProject(projectId, projectName) {
-        localStorage.setItem('aelbry_active_project_id', projectId);
-        localStorage.setItem('aelbry_active_project_name', projectName);
+        Aelbry.projectContext.set(projectId, projectName);
         window.location.href = `/Kanban/Index?projectId=${projectId}`;
     }
 

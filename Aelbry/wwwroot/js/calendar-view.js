@@ -27,6 +27,7 @@ window.CalendarViewPage = (function () {
         if (!pid) return;
 
         const treeResult = await Aelbry.api.get(`/Activity/GetTreeByProject?projectId=${pid}`);
+        console.log('[Calendario] GetTreeByProject ->', treeResult);
         const activities = treeResult.result === 'OK' ? flatten(treeResult.data, []) : [];
 
         activitiesById = Object.fromEntries(activities.map((a) => [String(a.activityId), a]));
@@ -83,6 +84,8 @@ window.CalendarViewPage = (function () {
             </div>`;
         document.getElementById('eventDetails').classList.remove('d-none');
     }
+
+    Aelbry.projectContext.autoLoad(loadAll);
 
     return { loadAll };
 })();

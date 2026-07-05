@@ -38,6 +38,7 @@ window.GanttView = (function () {
         if (!pid) return;
 
         const treeResult = await Aelbry.api.get(`/Activity/GetTreeByProject?projectId=${pid}`);
+        console.log('[Gantt] GetTreeByProject ->', treeResult);
         const activities = treeResult.result === 'OK' ? flatten(treeResult.data, []) : [];
 
         if (activities.length === 0) {
@@ -85,6 +86,8 @@ window.GanttView = (function () {
             ganttInstance.change_view_mode(document.getElementById('viewMode').value);
         }
     }
+
+    Aelbry.projectContext.autoLoad(loadAll);
 
     return { loadAll, changeViewMode };
 })();

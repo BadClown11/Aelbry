@@ -187,15 +187,17 @@
 
     // ── Portal de entrada: Admin siempre ve el sidebar completo; el resto de roles
     // primero cae en Inicio (solo topbar) y hasta que elige un proyecto (desde una fila
-    // del feed de actividades) se revela el sidebar para trabajar en ese proyecto. ──
-    const ACTIVE_PROJECT_ID_KEY = 'aelbry_active_project_id';
-    const ACTIVE_PROJECT_NAME_KEY = 'aelbry_active_project_name';
+    // del feed de actividades) se revela el sidebar para trabajar en ese proyecto. Inicio
+    // siempre oculta el sidebar de nuevo, sin importar si ya hay un proyecto activo. ──
+    function isHomePage() {
+        return window.location.pathname.toLowerCase().startsWith('/home');
+    }
 
     function applyProjectGate() {
         const user = window.Aelbry?.api?.getCurrentUser?.();
         const isAdmin = !!user?.roles?.includes('Admin');
-        const activeProjectId = localStorage.getItem(ACTIVE_PROJECT_ID_KEY);
-        const activeProjectName = localStorage.getItem(ACTIVE_PROJECT_NAME_KEY);
+        const activeProjectId = window.Aelbry?.projectContext?.getId?.();
+        const activeProjectName = window.Aelbry?.projectContext?.getName?.();
         const sidebar = document.getElementById('sidebar');
         const projectPicker = document.getElementById('projectPicker');
 
@@ -203,7 +205,7 @@
         // "Proyecto Activo" no le sirve de nada, asi que ni se muestra.
         projectPicker.style.display = isAdmin ? 'none' : '';
 
-        if (!isAdmin && !activeProjectId) {
+        if (!isAdmin && (isHomePage() || !activeProjectId)) {
             sidebar.style.display = 'none';
             return;
         }
@@ -225,8 +227,7 @@
     function onActiveProjectChange() {
         const select = document.getElementById('activeProjectSelect');
         if (!select.value) {
-            localStorage.removeItem(ACTIVE_PROJECT_ID_KEY);
-            localStorage.removeItem(ACTIVE_PROJECT_NAME_KEY);
+            window.Aelbry?.projectContext?.clear?.();
             window.location.href = '/Home/Index';
         }
     }

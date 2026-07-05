@@ -42,6 +42,7 @@ window.Kanban = (function () {
         Aelbry.ui.initSelect2(tagSelect);
 
         const treeResult = await Aelbry.api.get(`/Activity/GetTreeByProject?projectId=${pid}`);
+        console.log('[Kanban] GetTreeByProject ->', treeResult);
         allActivities = treeResult.result === 'OK' ? flatten(treeResult.data, []) : [];
 
         const tagEntries = await Promise.all(allActivities.map(async (a) => {
@@ -135,18 +136,9 @@ window.Kanban = (function () {
         return card;
     }
 
-    // Si se llega con ?projectId=X en la URL (ej. desde el feed de Inicio), se precarga
-    // el filtro y se busca de una vez.
-    document.addEventListener('DOMContentLoaded', () => {
-        const filterInput = document.getElementById('filterProjectId');
-        if (!filterInput) return;
-
-        const urlProjectId = new URLSearchParams(window.location.search).get('projectId');
-        if (urlProjectId) {
-            filterInput.value = urlProjectId;
-            loadAll();
-        }
-    });
+    // Autocarga con el proyecto activo (elegido en Inicio o ya seleccionado antes), sin
+    // importar por cual link del sidebar se haya llegado a esta pagina.
+    Aelbry.projectContext.autoLoad(loadAll);
 
     return { loadAll, render, clearFilters };
 })();

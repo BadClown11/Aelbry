@@ -32,6 +32,7 @@ window.DocFiles = (function () {
     async function loadDocuments() {
         const pid = projectId();
         const result = await Aelbry.api.get(`/Document/GetByProject?projectId=${pid}`);
+        console.log('[Documentos] GetByProject ->', result);
         const rows = document.getElementById('documentRows');
         rows.innerHTML = '';
 
@@ -289,3 +290,5 @@ window.DocFiles = (function () {
         loadFiles, createFolder, downloadFile, uploadFile, uploadNewVersion, deleteFile, openFileHistory,
     };
 })();
+
+Aelbry.projectContext.autoLoad(DocFiles.loadAll);

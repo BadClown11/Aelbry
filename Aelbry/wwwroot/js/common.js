@@ -67,3 +67,56 @@ Aelbry.ui = (function () {
 
     return { getTheme, applyTheme, toggleTheme, initSelect2, downloadBlob };
 })();
+
+/* Proyecto activo (elegido desde una fila del feed de Inicio): fuente unica de verdad para
+   que el sidebar sepa cuando mostrarse (ver _Sidebar.cshtml) y para que cada vista de
+   proyecto (Kanban, Gantt, Calendario, Actividades, Documentos) se autocargue con el mismo
+   proyecto sin importar por cual link del sidebar se haya navegado. */
+Aelbry.projectContext = (function () {
+    const ID_KEY = 'aelbry_active_project_id';
+    const NAME_KEY = 'aelbry_active_project_name';
+
+    function getId() {
+        return localStorage.getItem(ID_KEY);
+    }
+
+    function getName() {
+        return localStorage.getItem(NAME_KEY);
+    }
+
+    function set(id, name) {
+        localStorage.setItem(ID_KEY, id);
+        localStorage.setItem(NAME_KEY, name);
+    }
+
+    function clear() {
+        localStorage.removeItem(ID_KEY);
+        localStorage.removeItem(NAME_KEY);
+    }
+
+    /* Para usar en cada vista de proyecto: si el filtro de proyecto viene vacio, lo rellena
+       con el proyecto activo y dispara loadFn. Se puede llamar directo al final del script de
+       la pagina (sin envolver en su propio DOMContentLoaded): si el documento ya termino de
+       parsear para cuando este script se ejecuta (ej. si tardo mas en llegar por cache/red),
+       corre de inmediato en vez de esperar un evento que ya paso y nunca se volvera a disparar. */
+    function autoLoad(loadFn) {
+        function run() {
+            const filterInput = document.getElementById('filterProjectId');
+            if (!filterInput || filterInput.value) return;
+
+            const activeId = getId();
+            if (activeId) {
+                filterInput.value = activeId;
+                loadFn();
+            }
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', run);
+        } else {
+            run();
+        }
+    }
+
+    return { getId, getName, set, clear, autoLoad };
+})();
