@@ -16,6 +16,13 @@ namespace Aelbry.Web.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
+        public IActionResult Index()
+        {
+            return View();
+        }
+
+        [HttpGet]
         public JsonResult GetByCompany(int companyId)
         {
             return Exec(() => _departmentBL.GetByCompany(companyId));

@@ -1,0 +1,70 @@
+@{
+    ViewData["Title"] = "Inicio";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h4 class="mb-0" id="homeGreeting">Hola</h4>
+        <p class="text-muted small mb-0" id="homeSubtitle"></p>
+    </div>
+    <div class="d-flex gap-2 align-items-end" id="homeFilters">
+        <div class="d-none" id="homeAdvancedFilters">
+            <div class="d-flex gap-2">
+                <div>
+                    <label class="form-label small mb-0">Equipo (ID)</label>
+                    <input type="number" class="form-control form-control-sm" id="homeFilterTeamId" style="width: 110px" />
+                </div>
+                <div>
+                    <label class="form-label small mb-0">Departamento (ID)</label>
+                    <input type="number" class="form-control form-control-sm" id="homeFilterDeptId" style="width: 130px" />
+                </div>
+                <div>
+                    <label class="form-label small mb-0">Usuario (ID)</label>
+                    <input type="number" class="form-control form-control-sm" id="homeFilterUserId" style="width: 110px" />
+                </div>
+            </div>
+        </div>
+        <div>
+            <label class="form-label small mb-0">Desde</label>
+            <input type="date" class="form-control form-control-sm" id="homeStartDate" />
+        </div>
+        <div>
+            <label class="form-label small mb-0">Hasta</label>
+            <input type="date" class="form-control form-control-sm" id="homeEndDate" />
+        </div>
+        <button class="btn btn-outline-secondary btn-sm" onclick="Home.load()">Buscar</button>
+    </div>
+</div>
+
+<div class="row g-3 mb-3" id="homeKpiRow"></div>
+
+<div class="card">
+    <div class="card-body">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>Vence</th>
+                    <th>Codigo</th>
+                    <th>Actividad</th>
+                    <th>Proyecto</th>
+                    <th id="homeResponsibleHeader">Responsable</th>
+                    <th>Estado</th>
+                    <th>Prioridad</th>
+                    <th>Avance</th>
+                </tr>
+            </thead>
+            <tbody id="homeRows"></tbody>
+        </table>
+        <div class="aelbry-empty-state d-none" id="homeEmptyState">
+            No hay actividades en este rango de fechas. 🎉
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/home.css" />
+}
+
+@section Scripts {
+    <script src="~/js/home.js"></script>
+}

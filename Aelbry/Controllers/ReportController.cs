@@ -22,6 +22,27 @@ namespace Aelbry.Web.Controllers
             return View();
         }
 
+        /// <summary>
+        /// Vista "Inicio" para usuarios sin REPORTS_VIEW (Empleado/Invitado): a diferencia de
+        /// GetWeeklyReport, ignora cualquier userId que mande el cliente y siempre usa
+        /// CurrentUserId, para que nadie pueda espiar las actividades de otro usuario con
+        /// solo un permiso operativo basico (ACTIVITIES_VIEW).
+        /// </summary>
+        [HttpGet]
+        [Authorize(Policy = "Permission:ACTIVITIES_VIEW")]
+        public JsonResult GetMyActivities(DateTime? startDate, DateTime? endDate)
+        {
+            var filter = new ReportFilter
+            {
+                CompanyId = CurrentCompanyId,
+                UserId = CurrentUserId,
+                StartDate = startDate,
+                EndDate = endDate,
+            };
+
+            return Exec(() => _reportBL.GetWeeklyReport(filter));
+        }
+
         [HttpGet]
         [Authorize(Policy = "Permission:REPORTS_VIEW")]
         public JsonResult GetWeeklyReport(int companyId, int? projectId, int? userId, int? teamId, int? departmentId, DateTime? startDate, DateTime? endDate)

@@ -1,0 +1,65 @@
+@{
+    ViewData["Title"] = "Departamentos y Equipos";
+}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4>Departamentos y Equipos</h4>
+    <div class="d-flex gap-2">
+        <input type="number" id="filterCompanyId" class="form-control form-control-sm" placeholder="ID de empresa" style="width: 160px" />
+        <button class="btn btn-outline-secondary btn-sm" onclick="Departments.loadAll()">Buscar</button>
+        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#departmentModal" onclick="Departments.openCreateDepartment()">Nuevo departamento</button>
+    </div>
+</div>
+
+<p class="small text-muted">
+    Cada departamento (area) puede tener varios equipos — por ejemplo, el area de "Desarrollo" podria
+    tener un equipo de "Proyectos" y otro de "Soporte" al mismo tiempo.
+</p>
+
+<div id="departmentList"></div>
+
+<!-- Modal: Departamento -->
+<div class="modal fade" id="departmentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="departmentModalTitle">Departamento</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="departmentId" />
+                <label class="form-label">Nombre</label>
+                <input class="form-control" id="departmentName" />
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button class="btn btn-primary" onclick="Departments.saveDepartment()">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Equipo -->
+<div class="modal fade" id="teamModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="teamModalTitle">Equipo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="teamId" />
+                <input type="hidden" id="teamDepartmentId" />
+                <label class="form-label">Nombre</label>
+                <input class="form-control" id="teamName" />
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button class="btn btn-primary" onclick="Departments.saveTeam()">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/departments.js"></script>
+}
