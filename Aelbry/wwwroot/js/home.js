@@ -125,7 +125,10 @@ window.Home = (function () {
 
         sorted.forEach((a) => {
             const tr = document.createElement('tr');
+            tr.style.cursor = 'pointer';
+            tr.title = 'Entrar al proyecto';
             if (a.isAtRisk) tr.classList.add('table-danger');
+            tr.addEventListener('click', () => enterProject(a.projectId, a.projectName));
 
             tr.innerHTML = `
                 <td>${a.estimatedEndDate ? new Date(a.estimatedEndDate).toLocaleDateString() : 'Sin fecha'}</td>
@@ -140,11 +143,19 @@ window.Home = (function () {
         });
     }
 
+    // Al elegir un proyecto (desde una fila del feed) se marca como "activo" para que el
+    // sidebar se revele (ver _Sidebar.cshtml -> applyProjectGate) y se entra a su tablero.
+    function enterProject(projectId, projectName) {
+        localStorage.setItem('aelbry_active_project_id', projectId);
+        localStorage.setItem('aelbry_active_project_name', projectName);
+        window.location.href = `/Kanban/Index?projectId=${projectId}`;
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         if (!document.getElementById('homeGreeting')) return;
         initDefaults();
         load();
     });
 
-    return { load };
+    return { load, enterProject };
 })();

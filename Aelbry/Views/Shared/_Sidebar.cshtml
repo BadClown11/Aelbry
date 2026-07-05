@@ -1,11 +1,8 @@
 <aside class="sidebar" id="sidebar">
     <div class="sidebar__project-picker">
         <label class="sidebar__section-label sidebar-label">Proyecto Activo</label>
-        <select class="project-select" id="activeProjectSelect">
+        <select class="project-select" id="activeProjectSelect" onchange="onActiveProjectChange()">
             <option value="">— Seleccionar proyecto —</option>
-            <option value="ael" selected>🛡️ Aelbry Platform v1.0</option>
-            <option value="erp">💼 ERP Cliente Alfa</option>
-            <option value="mob">📱 App Móvil Delivery</option>
         </select>
     </div>
     <nav class="sidebar__nav" id="sidebar-nav">
@@ -188,9 +185,53 @@
         });
     }
 
+    // ── Portal de entrada: Admin siempre ve el sidebar completo; el resto de roles
+    // primero cae en Inicio (solo topbar) y hasta que elige un proyecto (desde una fila
+    // del feed de actividades) se revela el sidebar para trabajar en ese proyecto. ──
+    const ACTIVE_PROJECT_ID_KEY = 'aelbry_active_project_id';
+    const ACTIVE_PROJECT_NAME_KEY = 'aelbry_active_project_name';
+
+    function applyProjectGate() {
+        const user = window.Aelbry?.api?.getCurrentUser?.();
+        const isAdmin = !!user?.roles?.includes('Admin');
+        const activeProjectId = localStorage.getItem(ACTIVE_PROJECT_ID_KEY);
+        const activeProjectName = localStorage.getItem(ACTIVE_PROJECT_NAME_KEY);
+        const sidebar = document.getElementById('sidebar');
+
+        if (!isAdmin && !activeProjectId) {
+            sidebar.style.display = 'none';
+            return;
+        }
+
+        sidebar.style.display = '';
+
+        const select = document.getElementById('activeProjectSelect');
+        if (activeProjectId && select && !select.querySelector(`option[value="${activeProjectId}"]`)) {
+            const opt = document.createElement('option');
+            opt.value = activeProjectId;
+            opt.textContent = activeProjectName || `Proyecto #${activeProjectId}`;
+            select.appendChild(opt);
+        }
+        if (select && activeProjectId) {
+            select.value = activeProjectId;
+        }
+    }
+
+    function onActiveProjectChange() {
+        const select = document.getElementById('activeProjectSelect');
+        if (!select.value) {
+            localStorage.removeItem(ACTIVE_PROJECT_ID_KEY);
+            localStorage.removeItem(ACTIVE_PROJECT_NAME_KEY);
+            window.location.href = '/Home/Index';
+        }
+    }
+
     // api.js se carga mas abajo en el layout (despues de este partial), asi que hay que
     // esperar a que el documento termine de parsear/ejecutar todos los <script> antes de leerlo.
-    document.addEventListener('DOMContentLoaded', filterByPermissions);
+    document.addEventListener('DOMContentLoaded', () => {
+        filterByPermissions();
+        applyProjectGate();
+    });
 
     // ── Colapsar sidebar ──
     let sidebarCollapsed = false;

@@ -135,5 +135,18 @@ window.Kanban = (function () {
         return card;
     }
 
+    // Si se llega con ?projectId=X en la URL (ej. desde el feed de Inicio), se precarga
+    // el filtro y se busca de una vez.
+    document.addEventListener('DOMContentLoaded', () => {
+        const filterInput = document.getElementById('filterProjectId');
+        if (!filterInput) return;
+
+        const urlProjectId = new URLSearchParams(window.location.search).get('projectId');
+        if (urlProjectId) {
+            filterInput.value = urlProjectId;
+            loadAll();
+        }
+    });
+
     return { loadAll, render, clearFilters };
 })();
