@@ -1,0 +1,381 @@
+﻿:root {
+    --brand-color: #4C6EF5;
+    --brand-hover: #3b5bdb;
+    --brand-light: #f0f3ff;
+    --font-inter: 'Inter', sans-serif;
+    --transition-premium: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+body {
+    font-family: var(--font-inter);
+    background-color: #ffffff;
+    color: #0f172a;
+    min-height: 100vh;
+    overflow-x: hidden;
+    transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+html.dark body {
+    background-color: #090d16;
+    color: #f8fafc;
+}
+
+/* Contenedor Split Screen */
+.login-split-container {
+    min-height: 100vh;
+    display: flex;
+}
+
+/* --- SECCIÓN IZQUIERDA: PANEL DE IDENTIDAD DE MARCA (Estilo Atlassian) --- */
+.brand-panel {
+    flex: 1.1;
+    background: linear-gradient(135deg, #18224f 0%, #0c102b 100%);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 3.5rem;
+    overflow: hidden;
+    z-index: 10;
+}
+
+html.dark .brand-panel {
+    background: linear-gradient(135deg, #0d1330 0%, #030511 100%);
+}
+
+/* Degradado circular fino de fondo */
+.brand-panel::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle at 15% 20%, rgba(76, 110, 245, 0.18) 0%, transparent 55%), radial-gradient(circle at 85% 75%, rgba(99, 102, 241, 0.12) 0%, transparent 55%);
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Retícula geométrica de fondo ultra sutil */
+.grid-overlay {
+    position: absolute;
+    inset: 0;
+    background-image: linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    background-size: 30px 30px;
+    z-index: 2;
+    opacity: 0.8;
+}
+
+.brand-header-logo {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.logo-box {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.75rem;
+    background-color: var(--brand-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(76, 110, 245, 0.3);
+}
+
+/* Contenedor de la ilustración */
+.brand-showcase {
+    position: relative;
+    z-index: 10;
+    margin: auto 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+}
+
+/* Ilustración de Personajes Colaborando (Inspirado en Atlassian) */
+.illustration-wrapper {
+    width: 100%;
+    max-width: 480px;
+    margin-bottom: 2.5rem;
+    filter: drop-shadow(0 15px 30px rgba(0, 0, 0, 0.25));
+}
+
+/* Animación suave de los elementos flotantes de la ilustración */
+@@keyframes float-slow {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-8px);
+    }
+}
+
+.animate-item-1 {
+    animation: float-slow 4s ease-in-out infinite;
+}
+
+.animate-item-2 {
+    animation: float-slow 5s ease-in-out infinite;
+    animation-delay: 1s;
+}
+
+/* --- SECCIÓN DERECHA: FORMULARIO DE INGRESO --- */
+.form-panel {
+    width: 100%;
+    max-width: 540px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 4rem;
+    position: relative;
+    z-index: 20;
+    background-color: #ffffff;
+    transition: background-color 0.4s ease;
+}
+
+html.dark .form-panel {
+    background-color: #090d16;
+}
+
+.form-container-box {
+    width: 100%;
+    max-width: 380px;
+    margin: 0 auto;
+}
+
+/* Entradas de Formulario Estilo Atlassian */
+.custom-form-group {
+    position: relative;
+    margin-bottom: 1.25rem;
+}
+
+.custom-form-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #475569;
+    margin-bottom: 0.45rem;
+    display: block;
+}
+
+html.dark .custom-form-label {
+    color: #cbd5e1;
+}
+
+.custom-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.custom-input-field {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 2.75rem;
+    font-size: 0.92rem;
+    font-weight: 500;
+    border-radius: 0.5rem;
+    border: 2px solid #e2e8f0;
+    background-color: #ffffff;
+    color: #0f172a;
+    transition: var(--transition-premium);
+}
+
+html.dark .custom-input-field {
+    background-color: #121826;
+    border-color: #1e293b;
+    color: #f8fafc;
+}
+
+.custom-input-field:focus {
+    outline: none;
+    border-color: var(--brand-color);
+    box-shadow: 0 0 0 4px rgba(76, 110, 245, 0.15);
+}
+
+html.dark .custom-input-field:focus {
+    box-shadow: 0 0 0 4px rgba(76, 110, 245, 0.25);
+}
+
+.input-decorator-icon {
+    position: absolute;
+    left: 1rem;
+    color: #94a3b8;
+    pointer-events: none;
+    transition: var(--transition-premium);
+}
+
+.custom-input-field:focus + .input-decorator-icon,
+.custom-input-wrapper:focus-within .input-decorator-icon {
+    color: var(--brand-color);
+}
+
+/* Botón Mostrar/Ocultar Contraseña */
+.password-toggle-trigger {
+    position: absolute;
+    right: 1rem;
+    background: none;
+    border: none;
+    color: #94a3b8;
+    padding: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition-premium);
+}
+
+    .password-toggle-trigger:hover {
+        color: var(--brand-color);
+    }
+
+/* Botón de Submit Principal */
+.btn-premium-action {
+    background-color: var(--brand-color);
+    border: none;
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 0.92rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    transition: var(--transition-premium);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    box-shadow: 0 4px 12px rgba(76, 110, 245, 0.2);
+}
+
+    .btn-premium-action:hover {
+        background-color: var(--brand-hover);
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(76, 110, 245, 0.3);
+    }
+
+    .btn-premium-action:active {
+        transform: translateY(0);
+    }
+
+/* Selector de tema flotante */
+.theme-switcher-float {
+    position: absolute;
+    top: 2rem;
+    right: 2rem;
+    z-index: 50;
+}
+
+/* ================= PANTALLA DE CARGA (LOADING OVERLAY BLOCK) ================= */
+.loading-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(15, 23, 42, 0.55); /* Slate 900 con transparencia */
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+    .loading-overlay.active {
+        opacity: 1;
+        pointer-events: all;
+    }
+
+/* Tarjeta Flotante */
+.loading-card {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 1.25rem;
+    padding: 2.5rem 2rem;
+    width: 100%;
+    max-width: 320px;
+    text-align: center;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    transform: scale(0.9);
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+html.dark .loading-card {
+    background-color: #111827; /* Gray 900 */
+    border-color: #1f2937;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.loading-overlay.active .loading-card {
+    transform: scale(1);
+}
+
+/* Spinner premium cinético */
+.premium-loader {
+    position: relative;
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 1.25rem;
+}
+
+.premium-loader-ring {
+    position: absolute;
+    inset: 0;
+    border: 4px solid var(--brand-color);
+    border-radius: 50%;
+    opacity: 0.12;
+}
+
+.premium-loader-circle {
+    position: absolute;
+    inset: 0;
+    border: 4px solid transparent;
+    border-top-color: var(--brand-color);
+    border-radius: 50%;
+    animation: spin-loader 0.85s cubic-bezier(0.5, 0.1, 0.4, 0.9) infinite;
+}
+
+.premium-loader-pulse {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    background-color: var(--brand-color);
+    border-radius: 50%;
+    top: 21px;
+    left: 21px;
+    animation: pulse-loader 1.5s ease-in-out infinite;
+}
+
+@keyframes spin-loader {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes pulse-loader {
+    0%, 100% {
+        transform: scale(0.85);
+        opacity: 0.6;
+    }
+
+    50% {
+        transform: scale(1.15);
+        opacity: 1;
+    }
+}
+
+/* Responsividad Móvil */
+@media (max-width: 991.98px) {
+    .brand-panel {
+        display: none !important;
+    }
+
+    .form-panel {
+        max-width: 100%;
+        padding: 2.5rem 1.5rem;
+        justify-content: center;
+    }
+}

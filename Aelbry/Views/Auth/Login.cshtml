@@ -1,66 +1,219 @@
 @{
     Layout = null;
-    ViewData["Title"] = "Iniciar sesion";
+    ViewData["Title"] = "Iniciar sesión";
 }
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="h-full">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Aelbry</title>
+
     <script>
         (function () {
             var theme = localStorage.getItem('aelbry_theme') || 'light';
-            document.documentElement.setAttribute('data-bs-theme', theme);
+            document.documentElement.setAttribute('data-theme', theme);
+            if (theme === 'dark') {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
         })();
     </script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="~/css/Login.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/common.css" />
-    <link rel="stylesheet" href="~/css/site.css" />
+
 </head>
-<body>
-    <button id="themeToggle" class="btn btn-sm rounded-circle position-fixed top-0 end-0 m-3" title="Cambiar tema" style="width: 2.25rem; height: 2.25rem; border: 1px solid var(--aelbry-border); background: var(--aelbry-surface);">
-        <span id="themeToggleIcon">🌙</span>
-    </button>
-    <div class="card auth-card p-4">
-        <h3 class="mb-3 text-center">Aelbry</h3>
-        <p class="text-muted text-center mb-4">Gestion de Proyectos Empresarial</p>
+<body class="h-full">
+    <div class="login-split-container">
+        <section class="brand-panel d-none d-lg-flex">
+            <div class="grid-overlay"></div>
 
-        <div id="loginError" class="alert alert-danger d-none"></div>
+            <!-- Logo de la Plataforma -->
+            <div class="brand-header-logo">
+                <div class="logo-box">
+                    <span class="text-white fw-extrabold fs-4">A</span>
+                </div>
+                <span class="text-white fw-bold fs-4 tracking-tight">Aelbry</span>
+            </div>
 
-        <form id="loginForm">
-            <div class="mb-3">
-                <label class="form-label">Correo electronico</label>
-                <input type="email" class="form-control" id="email" required />
+            <!-- Ilustración estilo Atlassian en SVG -->
+            <div class="brand-showcase">
+                <div class="illustration-wrapper">
+                    <svg viewBox="0 0 500 350" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-100 h-auto">
+                        <!-- Plataforma Base / Isométrico de Trabajo -->
+                        <path d="M50 250 L250 170 L450 250 L250 330 Z" fill="#202d6b" opacity="0.4" />
+                        <path d="M50 250 L250 170 L450 250 L250 330 Z" stroke="#4C6EF5" stroke-width="2" stroke-dasharray="4 4" />
+
+                        <!-- Columna de Tareas / Tablero Flotante (Animate 1) -->
+                        <g class="animate-item-1">
+                            <!-- Fondo de Tarjeta de Proyecto -->
+                            <rect x="80" y="80" width="160" height="110" rx="12" fill="#1b2559" stroke="#38BDF8" stroke-width="1.5" />
+                            <!-- Líneas de Tareas de Tablero -->
+                            <rect x="95" y="100" width="130" height="8" rx="4" fill="#38BDF8" opacity="0.8" />
+                            <rect x="95" y="116" width="90" height="6" rx="3" fill="#64748b" />
+                            <!-- Tarjetas Kanban pequeñas simuladas -->
+                            <rect x="95" y="134" width="60" height="24" rx="4" fill="#4C6EF5" />
+                            <rect x="105" y="142" width="40" height="4" rx="2" fill="#ffffff" opacity="0.9" />
+                            <rect x="162" y="134" width="63" height="24" rx="4" fill="#10b981" />
+                            <rect x="172" y="142" width="43" height="4" rx="2" fill="#ffffff" opacity="0.9" />
+                        </g>
+
+                        <!-- Persona 1 (Izquierda, interactuando con el tablero) -->
+                        <g transform="translate(60, 160)">
+                            <!-- Cuerpo -->
+                            <path d="M40 90 C40 60, 10 60, 10 90 Z" fill="#38BDF8" />
+                            <!-- Cabeza -->
+                            <circle cx="25" cy="45" r="14" fill="#fbcfe8" />
+                            <!-- Cabello -->
+                            <path d="M11 42 C11 25, 39 25, 39 42 C39 42, 35 30, 25 30 C15 30, 11 42, 11 42 Z" fill="#db2777" />
+                            <!-- Brazos apuntando al tablero -->
+                            <path d="M35 70 L65 52" stroke="#38BDF8" stroke-width="8" stroke-linecap="round" />
+                        </g>
+
+                        <!-- Elemento Flotante: Cronograma / Gantt (Animate 2) -->
+                        <g class="animate-item-2" transform="translate(240, 60)">
+                            <!-- Documento de Hoja de Ruta -->
+                            <rect x="20" y="20" width="150" height="130" rx="12" fill="#1b2559" stroke="#10b981" stroke-width="1.5" />
+                            <!-- Ícono de cronograma -->
+                            <rect x="35" y="40" width="120" height="10" rx="5" fill="#10b981" opacity="0.8" />
+                            <!-- Barras de Gantt -->
+                            <rect x="35" y="65" width="50" height="8" rx="4" fill="#fb923c" />
+                            <rect x="95" y="80" width="60" height="8" rx="4" fill="#4C6EF5" />
+                            <rect x="55" y="95" width="75" height="8" rx="4" fill="#6366f1" />
+                            <!-- Líneas de Dependencias sutiles -->
+                            <path d="M85 69 L95 84" stroke="#e2e8f0" stroke-width="1.5" stroke-dasharray="2 2" stroke-linecap="round" />
+                        </g>
+
+                        <!-- Persona 2 (Derecha, gestionando la hoja de ruta) -->
+                        <g transform="translate(370, 160)">
+                            <!-- Cuerpo -->
+                            <path d="M40 90 C40 60, 10 60, 10 90 Z" fill="#6366f1" />
+                            <!-- Cabeza -->
+                            <circle cx="25" cy="45" r="14" fill="#ffedd5" />
+                            <!-- Lentes corporativos modernos -->
+                            <rect x="18" y="41" width="6" height="4" rx="1" fill="#0f172a" />
+                            <rect x="26" y="41" width="6" height="4" rx="1" fill="#0f172a" />
+                            <line x1="24" y1="43" x2="26" y2="43" stroke="#0f172a" stroke-width="1.5" />
+                            <!-- Cabello -->
+                            <path d="M11 38 C11 25, 39 25, 39 38 Z" fill="#1e293b" />
+                            <!-- Brazo apuntando -->
+                            <path d="M15 70 L-10 50" stroke="#6366f1" stroke-width="8" stroke-linecap="round" />
+                        </g>
+
+                        <!-- Elementos decorativos de interfaz flotantes -->
+                        <circle cx="250" cy="220" r="18" fill="#fb923c" opacity="0.15" class="animate-item-1" />
+                        <circle cx="250" cy="220" r="6" fill="#fb923c" class="animate-item-1" />
+
+                        <polygon points="320,190 330,210 310,210" fill="#38BDF8" opacity="0.2" class="animate-item-2" />
+                    </svg>
+                </div>
+
+                <h2 class="text-white fw-bold fs-3 tracking-tight lh-sm mb-2">Centraliza la entrega de tus proyectos</h2>
+                <p class="text-slate-400 fs-6 fw-normal mb-0" style="max-width: 440px; color: #94a3b8;">La plataforma unificada para estructurar actividades, dar seguimiento al tiempo y sincronizar a tus equipos.</p>
             </div>
-            <div class="mb-3">
-                <label class="form-label">Contrasena</label>
-                <input type="password" class="form-control" id="password" required />
+
+            <!-- Pie de página izquierdo -->
+            <div class="text-white-50 d-flex justify-content-between text-xs" style="font-size: 0.8rem; position: relative; z-index: 10; color: #64748b;">
+                <span>Aelbry Workspace v1.5</span>
+                <span>© @DateTime.Now.Year CorpGlobal</span>
             </div>
-            <button type="submit" class="btn btn-primary w-100">Ingresar</button>
-        </form>
+        </section>
+
+        <!-- ================= SECCIÓN DERECHA: FORMULARIO DE ACCESO ================= -->
+        <main class="form-panel">
+
+            <!-- Botón flotante para cambiar de tema (Modo Claro / Oscuro) -->
+            <div class="theme-switcher-float">
+                <button id="themeToggle" class="btn btn-sm rounded-circle p-0 shadow-sm d-flex align-items-center justify-center border"
+                        style="width: 2.5rem; height: 2.5rem; background-color: var(--bs-body-bg); border-color: #cbd5e1;" title="Cambiar tema">
+                    <i data-lucide="moon" class="w-4 h-4 text-secondary dark-hidden" id="theme-icon-light"></i>
+                    <i data-lucide="sun" class="w-4 h-4 text-warning d-none" id="theme-icon-dark"></i>
+                </button>
+            </div>
+
+            <div class="form-container-box">
+                <!-- Encabezado / Logo visible únicamente en dispositivos móviles -->
+                <div class="text-center d-block d-lg-none mb-4">
+                    <div class="logo-box d-inline-flex mb-3">
+                        <span class="text-white fw-extrabold fs-4">A</span>
+                    </div>
+                    <h3 class="fw-extrabold text-brand">Aelbry</h3>
+                    <p class="text-secondary small">Gestión de Proyectos de Alto Rendimiento</p>
+                </div>
+
+                <!-- Cabecera de bienvenida del formulario -->
+                <div class="mb-4 d-none d-lg-block">
+                    <h3 class="fw-bold fs-3 mb-1 tracking-tight text-slate-900 dark:text-white">Inicia sesión para continuar</h3>
+                    <p class="text-secondary small font-medium" style="color: #64748b;">Ingresa tus credenciales registradas para ingresar.</p>
+                </div>
+
+                <!-- Caja para el manejo dinámico de errores -->
+                <div id="loginError" class="alert alert-danger border-0 rounded-3 text-xs p-3 d-none mb-4" style="font-size: 0.85rem; font-weight: 500;">
+                    <div class="d-flex align-items-center gap-2">
+                        <i data-lucide="alert-circle" class="w-4 h-4 shrink-0"></i>
+                        <span id="errorMessage"></span>
+                    </div>
+                </div>
+
+                <!-- Formulario de Acceso Directo -->
+                <form id="loginForm">
+                    <!-- Campo: Correo Electrónico -->
+                    <div class="custom-form-group">
+                        <label class="custom-form-label">Correo electrónico</label>
+                        <div class="custom-input-wrapper">
+                            <input type="email" class="custom-input-field" id="email" placeholder="Introduce tu correo electrónico" required autocomplete="email" />
+                            <i data-lucide="mail" class="w-4 h-4 input-decorator-icon"></i>
+                        </div>
+                    </div>
+
+                    <!-- Campo: Contraseña -->
+                    <div class="custom-form-group">
+                        <div class="d-flex align-items-center justify-content-between mb-1">
+                            <label class="custom-form-label mb-0">Contraseña</label>
+                            <a href="#" class="text-decoration-none fw-semibold" style="font-size: 0.75rem; color: var(--brand-color);">¿No puedes iniciar sesión?</a>
+                        </div>
+                        <div class="custom-input-wrapper">
+                            <input type="password" class="custom-input-field" id="password" placeholder="Introduce tu contraseña" required autocomplete="current-password" />
+                            <i data-lucide="lock" class="w-4 h-4 input-decorator-icon"></i>
+                            <button type="button" id="togglePasswordBtn" class="password-toggle-trigger" title="Mostrar contraseña">
+                                <i data-lucide="eye" class="w-4 h-4" id="eyeIcon"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Recordar Sesión en el Navegador -->
+                    <div class="d-flex align-items-center mb-4" style="font-size: 0.82rem;">
+                        <label class="d-flex align-items-center gap-2 cursor-pointer text-secondary fw-medium">
+                            <input type="checkbox" class="form-check-input rounded border-slate-300" style="margin: 0; width: 1.1rem; height: 1.1rem;" />
+                            <span class="text-slate-500 dark:text-slate-400">Recordarme en este equipo</span>
+                        </label>
+                    </div>
+
+                    <!-- Botón Principal de Acceso con Animación -->
+                    <button type="submit" id="submitBtn" class="btn btn-premium-action w-100">
+                        <span id="submitText">Ingresar al workspace</span>
+                        <i data-lucide="arrow-right" class="w-4 h-4" id="submitIcon"></i>
+                    </button>
+                </form>
+
+                <!-- Footer del Formulario -->
+                <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 text-center">
+                    <p class="text-muted text-xs mb-1" style="font-size: 0.75rem; color: #64748b;">¿No tienes una cuenta de empresa?</p>
+                    <a href="#" class="text-decoration-none fw-bold" style="font-size: 0.8rem; color: var(--brand-color);">Crear una cuenta</a>
+                </div>
+            </div>
+        </main>
+
     </div>
 
+    <!-- Scripts de la Plataforma -->
     <script src="~/js/api.js"></script>
     <script src="~/js/common.js"></script>
-    <script>
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const errorBox = document.getElementById('loginError');
-            errorBox.classList.add('d-none');
-
-            const result = await Aelbry.api.login(email, password);
-            if (result.result === 'OK') {
-                window.location.href = '/Company/Index';
-            } else {
-                errorBox.textContent = result.result;
-                errorBox.classList.remove('d-none');
-            }
-        });
-    </script>
+    <script src="~/js/login.js"></script>
 </body>
 </html>

@@ -1,313 +1,379 @@
-@{
+﻿@{
     ViewData["Title"] = "Actividades";
 }
-<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-    <h4 class="mb-0">Actividades (WBS)</h4>
-    <div class="d-flex gap-2">
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3 p-3 bg-white dark:bg-slate-950 rounded-4 border shadow-xs">
+    <div>
+        <div class="d-flex align-items-center gap-2 mb-0.5">
+            <span class="badge bg-primary-subtle text-primary font-semibold text-uppercase px-2 py-0.5 rounded" style="font-size: 0.65rem;">Módulo 3</span>
+            <span class="text-muted text-xs">/</span>
+            <span class="text-muted text-xs font-medium">Gestor WBS</span>
+        </div>
+        <h4 class="fw-bold tracking-tight mb-0" style="color: var(--brand-primary);">Actividades (WBS)</h4>
+    </div>
+
+    <!-- Filtros alineados a la derecha -->
+    <div class="d-flex flex-wrap gap-2 align-items-center">
         <input type="hidden" id="filterProjectId" />
-        <input type="search" id="filterActivityName" class="form-control form-control-sm" placeholder="Buscar por nombre..." style="width: 220px" oninput="Activities.applyFilters()" />
-        <select id="filterResponsibleId" class="form-select form-select-sm" style="width: 190px" onchange="Activities.applyFilters()">
-            <option value="">Todos los responsables</option>
-        </select>
+
+        <!-- Buscador -->
+        <div class="position-relative">
+            <input type="search" id="filterActivityName" class="form-control form-control-sm custom-filter-input" placeholder="Buscar por nombre..." style="width: 220px; padding-left: 2rem;" oninput="Activities.applyFilters()" />
+            <i data-lucide="search" class="position-absolute" style="width: 14px; height: 14px; left: 0.75rem; top: 50%; transform: translateY(-50%); color: #94a3b8;"></i>
+        </div>
+
+        <!-- Selector de Responsables -->
+        <div class="position-relative">
+            <select id="filterResponsibleId" class="form-select form-select-sm custom-filter-input" style="width: 195px; padding-left: 2rem;" onchange="Activities.applyFilters()">
+                <option value="">Todos los responsables</option>
+            </select>
+            <i data-lucide="user" class="position-absolute" style="width: 14px; height: 14px; left: 0.75rem; top: 50%; transform: translateY(-50%); color: #94a3b8;"></i>
+        </div>
+
+        <!-- Botón Crear -->
         <button class="btn btn-aelbry-new btn-sm" onclick="Activities.openCreate(null)">
-            <span class="btn-aelbry-new__icon">+</span> Nueva actividad raiz
+            <span class="btn-aelbry-new__icon">+</span> Nueva Actividad Raíz
         </button>
     </div>
 </div>
 
-<div class="card">
+<!-- CONTENEDOR DE LA TABLA WBS -->
+<div class="card wbs-workspace-card">
     <div class="card-body p-0">
-        <table class="table align-middle mb-0" id="activityTable">
-            <thead>
-                <tr>
-                    <th class="ps-3">Codigo</th>
-                    <th>Nombre</th>
-                    <th>Estado</th>
-                    <th>Prioridad</th>
-                    <th>Responsable</th>
-                    <th class="text-center">Peso</th>
-                    <th>Avance</th>
-                    <th class="text-end pe-3"></th>
-                </tr>
-            </thead>
-            <tbody id="activityRows"></tbody>
-        </table>
+        <div class="table-responsive">
+            <table class="table align-middle mb-0" id="activityTable">
+                <thead>
+                    <tr>
+                        <th class="ps-4" style="width: 140px;">Código</th>
+                        <th>Nombre de la Actividad</th>
+                        <th style="width: 130px;">Estado</th>
+                        <th style="width: 110px;">Prioridad</th>
+                        <th>Responsable</th>
+                        <th class="text-center" style="width: 90px;">Peso</th>
+                        <th style="width: 150px;">Avance Ponderado</th>
+                        <th class="text-end pe-4" style="width: 70px;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="activityRows">
+                    <!-- Filas inyectadas mediante renderActivityRow de forma recursiva -->
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 
-@section Styles {
-    <link rel="stylesheet" href="~/css/activities.css" asp-append-version="true" />
-}
+<!-- MODAL MAESTRO: CREAR / EDITAR ACTIVIDAD (REDISEÑADO PREMIUM) -->
+<div class="modal fade" id="activityModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content modal-content-premium border-0 shadow">
 
-<!-- Modal: Actividad -->
-<div class="modal fade" id="activityModal" tabindex="-1">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="activityModalTitle">Actividad</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <div class="modal-header border-bottom border-light px-4 py-3 d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="logo-box bg-primary p-2 rounded-2 d-flex align-items-center justify-center text-white" style="width:32px; height:32px;">
+                        <i data-lucide="folder-git-2" class="w-4 h-4"></i>
+                    </span>
+                    <h5 class="fw-bold mb-0 text-slate-900 dark:text-white" id="activityModalTitle">Parámetros de la Actividad</h5>
+                </div>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
-            <div class="modal-body">
+
+            <div class="modal-body px-4 py-4" style="overflow-y: auto;">
                 <input type="hidden" id="activityId" />
                 <input type="hidden" id="activityParentId" />
 
-                <div id="activityProgressBanner" class="d-none mb-4">
-                    <div class="d-flex justify-content-between align-items-center small text-muted mb-1">
-                        <span><i data-lucide="trending-up" style="width:14px;height:14px;"></i> Avance (automatico segun subactividades)</span>
-                        <span class="fw-semibold" id="activityProgressLabel">0%</span>
+                <!-- Banner de Avance Ponderado Automático ($Weight$) -->
+                <div id="activityProgressBanner" class="d-none mb-4 p-3 bg-light dark:bg-slate-900 rounded-3 border border-light">
+                    <div class="d-flex justify-content-between align-items-center small text-muted mb-1.5">
+                        <span class="fw-bold text-slate-700 dark:text-slate-300 d-flex align-items-center gap-1.5">
+                            <i data-lucide="trending-up" class="text-emerald-500" style="width:14px; height:14px;"></i>
+                            Avance Ponderado (Cálculo en Cascada)
+                        </span>
+                        <span class="fw-extrabold text-primary" id="activityProgressLabel">0%</span>
                     </div>
                     <div class="progress" style="height:8px;">
-                        <div class="progress-bar bg-success" id="activityProgressBar" style="width:0%"></div>
+                        <div class="progress-bar bg-primary rounded-pill progress-bar-striped progress-bar-animated" id="activityProgressBar" style="width:0%"></div>
                     </div>
                 </div>
 
-                <h6 class="text-uppercase text-muted small fw-bold mb-3">Informacion general</h6>
-                <div class="row">
-                    <div class="col-md-8 mb-3">
-                        <label class="form-label">Nombre</label>
-                        <input class="form-control" id="activityName" />
+                <!-- SECCIÓN 1: INFORMACIÓN GENERAL -->
+                <h6 class="text-uppercase text-primary small fw-extrabold tracking-wider mb-3">Información General</h6>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-8">
+                        <label class="form-label text-xs fw-bold text-muted uppercase">Nombre del Entregable</label>
+                        <input class="form-control rounded-3" id="activityName" placeholder="P. ej., Diseñar arquitectura de Stored Procedures" style="font-weight: 500;" />
                     </div>
-                    <div class="col-md-2 mb-3">
-                        <label class="form-label">Color</label>
-                        <input type="color" class="form-control form-control-color w-100" id="activityColor" value="#4C6EF5" />
+                    <div class="col-md-2 col-6">
+                        <label class="form-label text-xs fw-bold text-muted uppercase">Color</label>
+                        <input type="color" class="form-control form-control-color w-100 rounded-3 p-1" id="activityColor" value="#4C6EF5" title="Identificador de Gantt/Kanban" />
                     </div>
-                    <div class="col-md-2 mb-3">
-                        <label class="form-label">Peso</label>
-                        <input type="number" step="0.01" class="form-control" id="activityWeight" value="1" />
+                    <div class="col-md-2 col-6">
+                        <label class="form-label text-xs fw-bold text-muted uppercase">Peso %</label>
+                        <input type="number" step="0.01" class="form-control rounded-3 text-center fw-bold" id="activityWeight" value="1" />
                     </div>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label">Descripcion</label>
-                    <textarea class="form-control" id="activityDescription" rows="2"></textarea>
+
+                <!-- Descripción -->
+                <div class="mb-4">
+                    <label class="form-label text-xs fw-bold text-muted uppercase">Detalles y Notas de Alcance</label>
+                    <textarea class="form-control rounded-3" id="activityDescription" rows="2" placeholder="Escribe los requisitos de aceptación, comentarios o notas de implementación para el responsable..."></textarea>
                 </div>
-                <div class="row">
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">Categoria</label>
+
+                <!-- Estado, Prioridad y Categoría -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <label class="form-label text-xs fw-bold text-muted uppercase">Categoría</label>
                         <div class="input-group">
-                            <select class="form-select" id="activityCategory">
-                                <option value="">-- Sin categoria --</option>
+                            <select class="form-select rounded-start-3" id="activityCategory">
+                                <option value="">-- Sin categoría --</option>
                             </select>
-                            <button class="btn btn-outline-secondary" type="button" title="Nueva categoria" onclick="Activities.promptNewCategory()">+</button>
+                            <button class="btn btn-outline-secondary rounded-end-3" type="button" title="Crear nueva categoría" onclick="Activities.promptNewCategory()">+</button>
                         </div>
                     </div>
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">Estado</label>
-                        <select class="form-select" id="activityStatus">
-                            <option value="1">Pendiente</option>
-                            <option value="2">En Progreso</option>
-                            <option value="3">Bloqueada</option>
-                            <option value="4">Completada</option>
-                            <option value="5">Cancelada</option>
+                    <div class="col-md-4">
+                        <label class="form-label text-xs fw-bold text-muted uppercase">Estado Workflow</label>
+                        <select class="form-select rounded-3" id="activityStatus">
+                            <option value="1">⏳ Pendiente</option>
+                            <option value="2">⚡ En Progreso</option>
+                            <option value="3">🚫 Bloqueada</option>
+                            <option value="4">✅ Completada</option>
+                            <option value="5">❌ Cancelada</option>
                         </select>
                     </div>
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">Prioridad</label>
-                        <select class="form-select" id="activityPriority">
+                    <div class="col-md-4">
+                        <label class="form-label text-xs fw-bold text-muted uppercase">Prioridad de Entrega</label>
+                        <select class="form-select rounded-3" id="activityPriority">
                             <option value="1">Baja</option>
                             <option value="2" selected>Media</option>
                             <option value="3">Alta</option>
-                            <option value="4">Critica</option>
+                            <option value="4">Crítica</option>
                         </select>
                     </div>
                 </div>
 
-                <hr class="my-4" />
-                <h6 class="text-uppercase text-muted small fw-bold mb-3">Responsable</h6>
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <select class="form-select" id="activityResponsibleId">
+                <!-- SECCIÓN 2: ASIGNACIÓN -->
+                <hr class="my-4 border-slate-100" />
+                <h6 class="text-uppercase text-primary small fw-extrabold tracking-wider mb-3">Responsable Operativo</h6>
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <select class="form-select rounded-3" id="activityResponsibleId">
                             <option value="">-- Selecciona un responsable --</option>
                         </select>
                     </div>
                 </div>
 
-                <hr class="my-4" />
-                <h6 class="text-uppercase text-muted small fw-bold mb-3">Fechas</h6>
-                <div class="row">
-                    <div class="col-md-3 mb-3">
-                        <label class="form-label">Estimada inicio</label>
-                        <input type="date" class="form-control" id="activityEstStart" />
+                <!-- SECCIÓN 3: FECHAS PLANIFICADAS VS REALES -->
+                <hr class="my-4 border-slate-100" />
+                <h6 class="text-uppercase text-primary small fw-extrabold tracking-wider mb-3">Línea de Tiempo y Fechas</h6>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-3 col-6">
+                        <label class="form-label text-xs fw-bold text-muted uppercase">Estimada Inicio</label>
+                        <input type="date" class="form-control rounded-3" id="activityEstStart" />
                     </div>
-                    <div class="col-md-3 mb-3">
-                        <label class="form-label">Estimada fin</label>
-                        <input type="date" class="form-control" id="activityEstEnd" />
+                    <div class="col-md-3 col-6">
+                        <label class="form-label text-xs fw-bold text-muted uppercase">Estimada Fin</label>
+                        <input type="date" class="form-control rounded-3" id="activityEstEnd" />
                     </div>
-                    <div class="col-md-3 mb-3">
-                        <label class="form-label">Real inicio</label>
-                        <input type="date" class="form-control" id="activityActualStart" />
+                    <div class="col-md-3 col-6">
+                        <label class="form-label text-xs fw-bold text-muted uppercase">Real Inicio</label>
+                        <input type="date" class="form-control rounded-3" id="activityActualStart" />
                     </div>
-                    <div class="col-md-3 mb-3">
-                        <label class="form-label">Real fin</label>
-                        <input type="date" class="form-control" id="activityActualEnd" />
-                    </div>
-                </div>
-
-                <hr class="my-4" />
-                <h6 class="text-uppercase text-muted small fw-bold mb-3">Horas</h6>
-                <div class="row">
-                    <div class="col-md-6 mb-2">
-                        <label class="form-label">Estimadas</label>
-                        <input type="number" step="0.01" class="form-control" id="activityEstimatedHours" value="0" />
-                    </div>
-                    <div class="col-md-6 mb-2">
-                        <label class="form-label">Trabajadas</label>
-                        <input type="number" step="0.01" class="form-control" id="activityWorkedHours" value="0" />
+                    <div class="col-md-3 col-6">
+                        <label class="form-label text-xs fw-bold text-muted uppercase">Real Fin</label>
+                        <input type="date" class="form-control rounded-3" id="activityActualEnd" />
                     </div>
                 </div>
 
+                <!-- SECCIÓN 4: ESFUERZO / HORAS (Time Tracking Integration) -->
+                <hr class="my-4 border-slate-100" />
+                <h6 class="text-uppercase text-primary small fw-extrabold tracking-wider mb-3">Esfuerzo del Recurso</h6>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6 col-6">
+                        <label class="form-label text-xs fw-bold text-muted uppercase">Horas Estimadas</label>
+                        <input type="number" step="0.01" class="form-control rounded-3" id="activityEstimatedHours" value="0" />
+                    </div>
+                    <div class="col-md-6 col-6">
+                        <label class="form-label text-xs fw-bold text-muted uppercase">Horas Reales Trabajadas</label>
+                        <input type="number" step="0.01" class="form-control rounded-3 bg-light" id="activityWorkedHours" value="0" readonly />
+                    </div>
+                </div>
+
+                <!-- SECCIÓN 5: SUBACTIVIDADES INLINE -->
                 <div id="activitySubtasksSection" class="d-none">
-                    <hr class="my-4" />
-                    <h6 class="text-uppercase text-muted small fw-bold mb-3">Subactividades</h6>
-                    <ul class="list-group mb-3" id="activitySubtaskRows"></ul>
-                    <button type="button" class="btn btn-outline-primary btn-sm" id="activitySubtaskToggleBtn" onclick="Activities.toggleInlineSubtaskForm()">+ Agregar subactividad</button>
+                    <hr class="my-4 border-slate-100" />
+                    <h6 class="text-uppercase text-primary small fw-extrabold tracking-wider mb-3">Subactividades de este Entregable</h6>
+                    <ul class="list-group mb-3 border-0 space-y-1.5" id="activitySubtaskRows"></ul>
 
-                    <div id="activityInlineSubtaskForm" class="d-none mt-3 p-3 border rounded bg-body-tertiary">
-                        <div class="row">
-                            <div class="col-md-6 mb-2">
-                                <label class="form-label small">Nombre</label>
-                                <input class="form-control form-control-sm" id="subtaskName" />
+                    <button type="button" class="btn btn-outline-primary btn-sm rounded-3 font-semibold d-inline-flex align-items-center gap-1.5" id="activitySubtaskToggleBtn" onclick="Activities.toggleInlineSubtaskForm()">
+                        <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
+                        <span>Agregar Subactividad</span>
+                    </button>
+
+                    <!-- Formulario de Creación de Subactividad Rápida -->
+                    <div id="activityInlineSubtaskForm" class="d-none mt-3 p-3 border rounded-3 bg-light dark:bg-slate-900 border-slate-200">
+                        <div class="row g-3">
+                            <div class="col-md-8">
+                                <label class="form-label text-xs fw-bold text-muted uppercase">Nombre de Subactividad</label>
+                                <input class="form-control form-control-sm rounded-3" id="subtaskName" placeholder="P. ej., Escribir Unit Tests con xUnit" />
                             </div>
-                            <div class="col-md-3 mb-2">
-                                <label class="form-label small">Categoria</label>
-                                <select class="form-select form-select-sm" id="subtaskCategory">
-                                    <option value="">-- Sin categoria --</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3 mb-2">
-                                <label class="form-label small">Peso</label>
-                                <input type="number" step="0.01" class="form-control form-control-sm" id="subtaskWeight" value="1" />
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-12 mb-2">
-                                <label class="form-label small">Responsable</label>
-                                <select class="form-select form-select-sm" id="subtaskResponsibleId">
-                                    <option value="">-- Selecciona un responsable --</option>
+                            <div class="col-md-4">
+                                <label class="form-label text-xs fw-bold text-muted uppercase">Categoría</label>
+                                <select class="form-select form-select-sm rounded-3" id="subtaskCategory">
+                                    <option value="">-- Sin categoría --</option>
                                 </select>
                             </div>
                         </div>
-                        <div class="d-flex justify-content-end gap-2 mt-2">
-                            <button class="btn btn-sm btn-secondary" onclick="Activities.toggleInlineSubtaskForm()">Cancelar</button>
-                            <button class="btn btn-sm btn-primary" onclick="Activities.saveInlineSubtask()">Guardar subactividad</button>
+                        <div class="row g-3 mt-1">
+                            <div class="col-md-8">
+                                <label class="form-label text-xs fw-bold text-muted uppercase">Responsable Directo</label>
+                                <select class="form-select form-select-sm rounded-3" id="subtaskResponsibleId">
+                                    <option value="">-- Selecciona un colaborador --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label text-xs fw-bold text-muted uppercase">Peso Ponderado</label>
+                                <input type="number" step="0.01" class="form-control form-control-sm rounded-3 text-center fw-bold" id="subtaskWeight" value="1" />
+                            </div>
+                        </div>
+                        <div class="mt-3 d-flex justify-content-end gap-2">
+                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-3" onclick="Activities.toggleInlineSubtaskForm()">Cancelar</button>
+                            <button type="button" class="btn btn-sm btn-primary rounded-3 px-3" onclick="Activities.saveInlineSubtask()">Añadir Subactividad</button>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button class="btn btn-primary" onclick="Activities.save()">Guardar</button>
+
+            <div class="modal-footer border-top border-light px-4 py-3 d-flex gap-2 bg-light/30">
+                <button class="btn btn-outline-secondary rounded-3 font-semibold px-4" data-bs-dismiss="modal">Cerrar</button>
+                <button class="btn btn-primary rounded-3 font-semibold px-4" onclick="Activities.save()">Guardar Cambios</button>
             </div>
         </div>
     </div>
 </div>
 
+<!-- ================= MODALES ADICIONALES (CHECKLIST, DEPENDENCIAS, ETC.) ================= -->
+<!-- Se cargan de forma nativa en tu JS utilizando la clase modal-content-premium -->
 <!-- Modal: Checklist -->
-<div class="modal fade" id="checklistModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Checklist</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+<div class="modal fade" id="checklistModal" tabindex="-1" aria-hidden="true" style="z-index: 1060;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content modal-content-premium border-0 shadow">
+            <div class="modal-header border-bottom-0 p-4 pb-0 d-flex justify-content-between">
+                <h5 class="fw-extrabold text-slate-900 dark:text-white flex items-center gap-2" style="font-size:1.1rem;">
+                    <i data-lucide="check-square" class="text-primary w-5 h-5"></i>
+                    Checklist Operativo
+                </h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body p-4">
                 <input type="hidden" id="checklistActivityId" />
                 <div class="input-group mb-3">
-                    <input type="text" class="form-control" id="newChecklistText" placeholder="Nuevo punto del checklist" />
-                    <button class="btn btn-outline-primary" onclick="Activities.addChecklistItem()">Agregar</button>
+                    <input type="text" class="form-control border-slate-200 py-2 rounded-start-3" id="newChecklistText" placeholder="P. ej., Validar credenciales en middleware..." />
+                    <button class="btn btn-primary px-3 rounded-end-3 d-flex align-items-center justify-content-center" onclick="Activities.addChecklistItem()">
+                        <i data-lucide="plus" class="w-4 h-4"></i>
+                    </button>
                 </div>
-                <ul class="list-group" id="checklistRows"></ul>
+                <ul class="list-group list-group-flush space-y-2" id="checklistRows"></ul>
             </div>
         </div>
     </div>
 </div>
 
 <!-- Modal: Dependencias -->
-<div class="modal fade" id="dependenciesModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Dependencias (bloqueos)</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+<div class="modal fade" id="dependenciesModal" tabindex="-1" aria-hidden="true" style="z-index: 1060;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content modal-content-premium border-0 shadow">
+            <div class="modal-header border-bottom-0 p-4 pb-0 d-flex justify-content-between">
+                <h5 class="fw-extrabold text-slate-900 dark:text-white flex items-center gap-2" style="font-size:1.1rem;">
+                    <i data-lucide="git-branch" class="text-primary w-5 h-5"></i>
+                    Dependencias de Actividad (CPM)
+                </h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body p-4">
                 <input type="hidden" id="dependenciesActivityId" />
-                <div class="row mb-3">
+                <div class="row g-2 mb-3">
                     <div class="col-5">
-                        <input type="number" class="form-control" id="newDependsOnActivityId" placeholder="ID actividad predecesora" />
+                        <input type="number" class="form-control border-slate-200" id="newDependsOnActivityId" placeholder="ID Predecesora" />
                     </div>
                     <div class="col-5">
-                        <select class="form-select" id="newDependencyType">
-                            <option value="1">Fin a Inicio</option>
-                            <option value="2">Inicio a Inicio</option>
-                            <option value="3">Fin a Fin</option>
-                            <option value="4">Inicio a Fin</option>
+                        <select class="form-select border-slate-200" id="newDependencyType">
+                            <option value="1">Fin a Inicio (FS)</option>
+                            <option value="2">Inicio a Inicio (SS)</option>
+                            <option value="3">Fin a Fin (FF)</option>
+                            <option value="4">Inicio a Fin (SF)</option>
                         </select>
                     </div>
                     <div class="col-2">
-                        <button class="btn btn-outline-primary w-100" onclick="Activities.addDependency()">+</button>
+                        <button class="btn btn-primary w-100 font-bold" onclick="Activities.addDependency()">+</button>
                     </div>
                 </div>
-                <ul class="list-group" id="dependencyRows"></ul>
+                <ul class="list-group list-group-flush" id="dependencyRows"></ul>
             </div>
         </div>
     </div>
 </div>
 
 <!-- Modal: Participantes -->
-<div class="modal fade" id="participantsModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Participantes</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+<div class="modal fade" id="participantsModal" tabindex="-1" aria-hidden="true" style="z-index: 1060;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content modal-content-premium border-0 shadow">
+            <div class="modal-header border-bottom-0 p-4 pb-0 d-flex justify-content-between">
+                <h5 class="fw-extrabold text-slate-900 dark:text-white flex items-center gap-2" style="font-size:1.1rem;">
+                    <i data-lucide="users" class="text-primary w-5 h-5"></i>
+                    Colaboradores Participantes
+                </h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body p-4">
                 <input type="hidden" id="participantsActivityId" />
                 <div class="input-group mb-3">
-                    <select class="form-select" id="newParticipantUserId">
+                    <select class="form-select border-slate-200 rounded-start-3" id="newParticipantUserId">
                         <option value="">-- Selecciona una persona --</option>
                     </select>
-                    <button class="btn btn-outline-primary" onclick="Activities.addParticipant()">Agregar</button>
+                    <button class="btn btn-primary px-3 rounded-end-3 font-semibold" onclick="Activities.addParticipant()">Agregar</button>
                 </div>
-                <ul class="list-group" id="participantRows"></ul>
+                <ul class="list-group list-group-flush" id="participantRows"></ul>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Modal: Tiempo -->
-<div class="modal fade" id="timeModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Tiempo registrado</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+<!-- Modal: Tiempo Registrado -->
+<div class="modal fade" id="timeModal" tabindex="-1" aria-hidden="true" style="z-index: 1060;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content modal-content-premium border-0 shadow">
+            <div class="modal-header border-bottom-0 p-4 pb-0 d-flex justify-content-between">
+                <h5 class="fw-extrabold text-slate-900 dark:text-white flex items-center gap-2" style="font-size:1.1rem;">
+                    <i data-lucide="timer" class="text-primary w-5 h-5"></i>
+                    Registro de Tiempo Real
+                </h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body p-4">
                 <input type="hidden" id="timeActivityId" />
-                <div class="mb-3" id="timeTimerControls"></div>
-                <ul class="list-group" id="timeRows"></ul>
+                <div class="mb-4 bg-light dark:bg-slate-900 p-3 rounded-4 text-center border border-light" id="timeTimerControls"></div>
+                <ul class="list-group list-group-flush" id="timeRows"></ul>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Modal: Etiquetas -->
-<div class="modal fade" id="activityTagsModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Etiquetas de la actividad</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+<!-- Modal: Etiquetas Corporativas -->
+<div class="modal fade" id="activityTagsModal" tabindex="-1" aria-hidden="true" style="z-index: 1060;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content modal-content-premium border-0 shadow">
+            <div class="modal-header border-bottom-0 p-4 pb-0 d-flex justify-content-between">
+                <h5 class="fw-extrabold text-slate-900 dark:text-white flex items-center gap-2" style="font-size:1.1rem;">
+                    <i data-lucide="tags" class="text-primary w-5 h-5"></i>
+                    Etiquetas de la Actividad
+                </h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body p-4">
                 <input type="hidden" id="activityTagsActivityId" />
-                <div id="activityTagsChecklist"></div>
+                <div id="activityTagsChecklist" class="space-y-2 max-h-60 overflow-y-auto"></div>
             </div>
         </div>
     </div>
 </div>
-
 @section Scripts {
     <script src="~/js/activities.js" asp-append-version="true"></script>
 }
