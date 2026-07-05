@@ -1,12 +1,17 @@
 @{
     ViewData["Title"] = "Actividades";
 }
-<div class="d-flex justify-content-between align-items-center mb-3">
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
     <h4 class="mb-0">Actividades (WBS)</h4>
     <div class="d-flex gap-2">
-        <input type="number" id="filterProjectId" class="form-control form-control-sm" placeholder="ID de proyecto" style="width: 160px" />
-        <button class="btn btn-outline-secondary btn-sm" onclick="Activities.loadAll()">Buscar</button>
-        <button class="btn btn-primary btn-sm" onclick="Activities.openCreate(null)">+ Nueva actividad raiz</button>
+        <input type="hidden" id="filterProjectId" />
+        <input type="search" id="filterActivityName" class="form-control form-control-sm" placeholder="Buscar por nombre..." style="width: 220px" oninput="Activities.applyFilters()" />
+        <select id="filterResponsibleId" class="form-select form-select-sm" style="width: 190px" onchange="Activities.applyFilters()">
+            <option value="">Todos los responsables</option>
+        </select>
+        <button class="btn btn-aelbry-new btn-sm" onclick="Activities.openCreate(null)">
+            <span class="btn-aelbry-new__icon">+</span> Nueva actividad raiz
+        </button>
     </div>
 </div>
 
@@ -78,7 +83,12 @@
                 <div class="row">
                     <div class="col-md-4 mb-3">
                         <label class="form-label">Categoria</label>
-                        <input class="form-control" id="activityCategory" />
+                        <div class="input-group">
+                            <select class="form-select" id="activityCategory">
+                                <option value="">-- Sin categoria --</option>
+                            </select>
+                            <button class="btn btn-outline-secondary" type="button" title="Nueva categoria" onclick="Activities.promptNewCategory()">+</button>
+                        </div>
                     </div>
                     <div class="col-md-4 mb-3">
                         <label class="form-label">Estado</label>
@@ -142,6 +152,44 @@
                     <div class="col-md-6 mb-2">
                         <label class="form-label">Trabajadas</label>
                         <input type="number" step="0.01" class="form-control" id="activityWorkedHours" value="0" />
+                    </div>
+                </div>
+
+                <div id="activitySubtasksSection" class="d-none">
+                    <hr class="my-4" />
+                    <h6 class="text-uppercase text-muted small fw-bold mb-3">Subactividades</h6>
+                    <ul class="list-group mb-3" id="activitySubtaskRows"></ul>
+                    <button type="button" class="btn btn-outline-primary btn-sm" id="activitySubtaskToggleBtn" onclick="Activities.toggleInlineSubtaskForm()">+ Agregar subactividad</button>
+
+                    <div id="activityInlineSubtaskForm" class="d-none mt-3 p-3 border rounded bg-body-tertiary">
+                        <div class="row">
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label small">Nombre</label>
+                                <input class="form-control form-control-sm" id="subtaskName" />
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <label class="form-label small">Categoria</label>
+                                <select class="form-select form-select-sm" id="subtaskCategory">
+                                    <option value="">-- Sin categoria --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <label class="form-label small">Peso</label>
+                                <input type="number" step="0.01" class="form-control form-control-sm" id="subtaskWeight" value="1" />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12 mb-2">
+                                <label class="form-label small">Responsable</label>
+                                <select class="form-select form-select-sm" id="subtaskResponsibleId">
+                                    <option value="">-- Selecciona un responsable --</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-end gap-2 mt-2">
+                            <button class="btn btn-sm btn-secondary" onclick="Activities.toggleInlineSubtaskForm()">Cancelar</button>
+                            <button class="btn btn-sm btn-primary" onclick="Activities.saveInlineSubtask()">Guardar subactividad</button>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -62,18 +62,25 @@
     color: var(--aelbry-primary-dark);
 }
 
-.wbs-code-badge {
-    font-weight: 700;
-    font-size: 0.68rem;
-    padding: 0.2rem 0.55rem;
-    border-radius: 999px;
-    color: #fff;
+.wbs-color-dot {
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 50%;
+    flex: 0 0 auto;
+}
+
+.wbs-number {
+    font-weight: 600;
+    font-size: 0.78rem;
+    color: var(--aelbry-text-muted);
+    font-variant-numeric: tabular-nums;
     white-space: nowrap;
 }
 
 .wbs-name-cell {
     display: flex;
     flex-direction: column;
+    gap: 0.2rem;
     line-height: 1.25;
 }
 
@@ -82,9 +89,13 @@
     color: var(--aelbry-text);
 }
 
-.wbs-category {
-    font-size: 0.72rem;
-    color: var(--aelbry-text-muted);
+.wbs-category-badge {
+    align-self: flex-start;
+    font-size: 0.65rem;
+    font-weight: 600;
+    padding: 0.15rem 0.5rem;
+    color: var(--aelbry-primary-dark);
+    background-color: var(--aelbry-primary-light);
 }
 
 .wbs-badge {
@@ -145,4 +156,39 @@
 .wbs-actions .btn:focus {
     background-color: var(--aelbry-surface-alt);
     color: var(--aelbry-primary);
+}
+
+.btn-aelbry-new {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: #fff;
+    border: none;
+    padding: 0.4rem 0.9rem;
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--aelbry-primary), var(--aelbry-primary-dark));
+    box-shadow: var(--aelbry-shadow);
+    transition: box-shadow 0.15s ease, transform 0.1s ease;
+}
+
+.btn-aelbry-new:hover,
+.btn-aelbry-new:focus {
+    color: #fff;
+    box-shadow: var(--aelbry-shadow-lg);
+    transform: translateY(-1px);
+}
+
+.btn-aelbry-new__icon {
+    font-weight: 700;
+    font-size: 1rem;
+    line-height: 1;
+}
+
+.wbs-name-cell,
+#activitySubtaskRows {
+    max-width: 100%;
+}
+
+#activityInlineSubtaskForm {
+    border-color: var(--aelbry-border) !important;
 }

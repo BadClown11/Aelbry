@@ -10,10 +10,18 @@ window.Activities = (function () {
     let companyId = null;
     let companyTags = [];
     let companyUsers = [];
+    let companyCategories = [];
     let myTeamId = null;
     let myIsEmpleado = false;
     let lastTreeData = [];
     const collapsedIds = new Set();
+
+    function defaultDates() {
+        const start = new Date();
+        const end = new Date();
+        end.setDate(end.getDate() + 7);
+        return { start: start.toISOString().substring(0, 10), end: end.toISOString().substring(0, 10) };
+    }
 
     function avatarColor(name) {
         let hash = 0;
@@ -57,6 +65,57 @@ window.Activities = (function () {
         if (window.jQuery) jQuery(select).trigger('change');
     }
 
+    // La categoria sigue siendo un texto libre en Activity.Category (sin cambios
+    // de esquema/DAL), pero las opciones del select vienen de ActivityCategory
+    // (catalogo por empresa) en vez de que cada quien la escriba a mano distinto
+    // cada vez ("Backend", "backend", "Back-end", ...).
+    async function loadCategories() {
+        const result = await Aelbry.api.get(`/ActivityCategory/GetByCompany?companyId=${companyId}`);
+        companyCategories = result.result === 'OK' ? result.data : [];
+    }
+
+    function populateCategorySelect(select, extraValue) {
+        const previousValue = select.value;
+        select.innerHTML = '<option value="">-- Sin categoria --</option>';
+        const names = companyCategories.map((c) => c.name);
+        if (extraValue && !names.includes(extraValue)) names.push(extraValue);
+        names.forEach((name) => {
+            const opt = document.createElement('option');
+            opt.value = name;
+            opt.textContent = name;
+            select.appendChild(opt);
+        });
+        select.value = previousValue;
+        Aelbry.ui.initSelect2(select);
+    }
+
+    function populateResponsibleFilter() {
+        const select = document.getElementById('filterResponsibleId');
+        const previousValue = select.value;
+        select.innerHTML = '<option value="">Todos los responsables</option>';
+        companyUsers.forEach((u) => {
+            const opt = document.createElement('option');
+            opt.value = u.userId;
+            opt.textContent = `${u.firstName} ${u.lastName}`;
+            select.appendChild(opt);
+        });
+        select.value = previousValue;
+        Aelbry.ui.initSelect2(select);
+    }
+
+    async function promptNewCategory() {
+        const name = (prompt('Nombre de la nueva categoria:') ?? '').trim();
+        if (!name) return;
+
+        const result = await Aelbry.api.post('/ActivityCategory/Create', { companyId, name });
+        if (result.result !== 'OK') { alert(result.result); return; }
+
+        await loadCategories();
+        const select = document.getElementById('activityCategory');
+        populateCategorySelect(select);
+        setSelectValue(select, name);
+    }
+
     async function loadAll() {
         const pid = projectId();
         if (!pid) return;
@@ -68,6 +127,8 @@ window.Activities = (function () {
             companyTags = tagsResult.result === 'OK' ? tagsResult.data : [];
             const usersResult = await Aelbry.api.get(`/User/GetByCompany?companyId=${companyId}`);
             companyUsers = usersResult.result === 'OK' ? usersResult.data : [];
+            await loadCategories();
+            populateResponsibleFilter();
         }
 
         const me = Aelbry.api.getCurrentUser();
@@ -86,10 +147,37 @@ window.Activities = (function () {
         renderTree();
     }
 
+    function nodeMatchesFilter(node, nameQuery, responsibleId) {
+        const nameMatch = !nameQuery || (node.name ?? '').toLowerCase().includes(nameQuery);
+        const responsibleMatch = !responsibleId || String(node.responsibleUserId ?? '') === responsibleId;
+        return nameMatch && responsibleMatch;
+    }
+
+    // Si una subactividad calza con el filtro pero su padre no, igual se
+    // muestra el padre (para no perder el contexto de la jerarquia).
+    function filterTree(nodes, nameQuery, responsibleId) {
+        return nodes.reduce((acc, node) => {
+            const filteredChildren = filterTree(node.children ?? [], nameQuery, responsibleId);
+            if (nodeMatchesFilter(node, nameQuery, responsibleId) || filteredChildren.length > 0) {
+                acc.push({ ...node, children: filteredChildren });
+            }
+            return acc;
+        }, []);
+    }
+
+    function applyFilters() {
+        renderTree();
+    }
+
     function renderTree() {
         const rows = document.getElementById('activityRows');
         rows.innerHTML = '';
-        lastTreeData.forEach((a) => renderActivityRow(rows, a, 0));
+
+        const nameQuery = (document.getElementById('filterActivityName')?.value ?? '').trim().toLowerCase();
+        const responsibleId = document.getElementById('filterResponsibleId')?.value ?? '';
+        const data = (nameQuery || responsibleId) ? filterTree(lastTreeData, nameQuery, responsibleId) : lastTreeData;
+
+        data.forEach((a, index) => renderActivityRow(rows, a, 0, `${index + 1}`));
     }
 
     function toggleCollapse(activityId) {
@@ -101,7 +189,7 @@ window.Activities = (function () {
         renderTree();
     }
 
-    function renderActivityRow(container, a, depth) {
+    function renderActivityRow(container, a, depth, numberPath) {
         const hasChildren = (a.children ?? []).length > 0;
         const isCollapsed = collapsedIds.has(a.activityId);
         const progress = a.progressPercentage ?? 0;
@@ -109,21 +197,24 @@ window.Activities = (function () {
 
         const indent = '<span class="wbs-indent"></span>'.repeat(depth);
         const toggle = hasChildren
-            ? `<button class="wbs-toggle" onclick="Activities.toggleCollapse(${a.activityId})" title="${isCollapsed ? 'Expandir' : 'Colapsar'}">${isCollapsed ? '&#9656;' : '&#9662;'}</button>`
+            ? `<button class="wbs-toggle" onclick="event.stopPropagation(); Activities.toggleCollapse(${a.activityId})" title="${isCollapsed ? 'Expandir' : 'Colapsar'}">${isCollapsed ? '&#9656;' : '&#9662;'}</button>`
             : '<span class="wbs-indent"></span>';
 
         const tr = document.createElement('tr');
+        tr.title = 'Doble click para editar';
+        tr.ondblclick = () => openEdit(a.activityId);
         tr.innerHTML = `
             <td class="ps-3">
                 <div class="wbs-tree-cell">
                     ${indent}${toggle}
-                    <span class="wbs-code-badge" style="background-color:${a.colorHex}">${a.code}</span>
+                    <span class="wbs-color-dot" style="background-color:${a.colorHex}"></span>
+                    <span class="wbs-number">${numberPath}</span>
                 </div>
             </td>
             <td>
                 <div class="wbs-name-cell">
                     <span class="wbs-name">${a.name}</span>
-                    ${a.category ? `<span class="wbs-category">${a.category}</span>` : ''}
+                    ${a.category ? `<span class="badge rounded-pill wbs-category-badge">${a.category}</span>` : ''}
                 </div>
             </td>
             <td><span class="badge rounded-pill wbs-badge ${STATUS_BADGES[a.status] ?? 'text-bg-secondary'}">${STATUS_LABELS[a.status] ?? a.status}</span></td>
@@ -146,7 +237,7 @@ window.Activities = (function () {
             </td>
             <td class="text-end pe-3 wbs-actions">
                 <div class="dropdown">
-                    <button class="btn btn-sm" data-bs-toggle="dropdown" aria-expanded="false">&#8942;</button>
+                    <button class="btn btn-sm" data-bs-toggle="dropdown" aria-expanded="false" onclick="event.stopPropagation()">&#8942;</button>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li><a class="dropdown-item" href="#" onclick="Activities.openCreate(${a.activityId});return false;">+ Subactividad</a></li>
                         <li><a class="dropdown-item" href="#" onclick="Activities.openChecklist(${a.activityId});return false;">Checklist</a></li>
@@ -164,7 +255,7 @@ window.Activities = (function () {
         container.appendChild(tr);
 
         if (hasChildren && !isCollapsed) {
-            a.children.forEach((child) => renderActivityRow(container, child, depth + 1));
+            a.children.forEach((child, index) => renderActivityRow(container, child, depth + 1, `${numberPath}.${index + 1}`));
         }
     }
 
@@ -177,18 +268,21 @@ window.Activities = (function () {
         document.getElementById('activityColor').value = '#4C6EF5';
         document.getElementById('activityWeight').value = '1';
         document.getElementById('activityDescription').value = '';
-        document.getElementById('activityCategory').value = '';
+        populateCategorySelect(document.getElementById('activityCategory'));
+        setSelectValue(document.getElementById('activityCategory'), '');
         document.getElementById('activityStatus').value = '1';
         document.getElementById('activityPriority').value = '2';
         populateUserSelect(document.getElementById('activityResponsibleId'), '-- Selecciona un responsable --');
         setSelectValue(document.getElementById('activityResponsibleId'), '');
-        document.getElementById('activityEstStart').value = '';
-        document.getElementById('activityEstEnd').value = '';
+        const dates = defaultDates();
+        document.getElementById('activityEstStart').value = dates.start;
+        document.getElementById('activityEstEnd').value = dates.end;
         document.getElementById('activityActualStart').value = '';
         document.getElementById('activityActualEnd').value = '';
         document.getElementById('activityEstimatedHours').value = '0';
         document.getElementById('activityWorkedHours').value = '0';
         document.getElementById('activityProgressBanner').classList.add('d-none');
+        document.getElementById('activitySubtasksSection').classList.add('d-none');
 
         activityModal = activityModal || new bootstrap.Modal(document.getElementById('activityModal'));
         activityModal.show();
@@ -206,7 +300,8 @@ window.Activities = (function () {
         document.getElementById('activityColor').value = a.colorHex;
         document.getElementById('activityWeight').value = a.weight;
         document.getElementById('activityDescription').value = a.description ?? '';
-        document.getElementById('activityCategory').value = a.category ?? '';
+        populateCategorySelect(document.getElementById('activityCategory'), a.category);
+        setSelectValue(document.getElementById('activityCategory'), a.category ?? '');
         document.getElementById('activityStatus').value = a.status;
         document.getElementById('activityPriority').value = a.priority;
         populateUserSelect(document.getElementById('activityResponsibleId'), '-- Selecciona un responsable --');
@@ -223,8 +318,106 @@ window.Activities = (function () {
         document.getElementById('activityProgressLabel').textContent = `${Math.round(progress)}%`;
         document.getElementById('activityProgressBar').style.width = `${progress}%`;
 
+        document.getElementById('activitySubtasksSection').classList.remove('d-none');
+        document.getElementById('activityInlineSubtaskForm').classList.add('d-none');
+        document.getElementById('activitySubtaskToggleBtn').textContent = '+ Agregar subactividad';
+        renderSubtasksSection(a.activityId);
+
         activityModal = activityModal || new bootstrap.Modal(document.getElementById('activityModal'));
         activityModal.show();
+    }
+
+    // ---- Subactividades (dentro del modal de editar) ----
+    function findNode(nodes, activityId) {
+        for (const n of nodes) {
+            if (n.activityId === activityId) return n;
+            const found = findNode(n.children ?? [], activityId);
+            if (found) return found;
+        }
+        return null;
+    }
+
+    function renderSubtasksSection(activityId) {
+        const node = findNode(lastTreeData, activityId);
+        const children = node?.children ?? [];
+        const rows = document.getElementById('activitySubtaskRows');
+        rows.innerHTML = '';
+
+        if (children.length === 0) {
+            rows.innerHTML = '<li class="list-group-item text-muted small">Todavia no tiene subactividades.</li>';
+            return;
+        }
+
+        children.forEach((c) => {
+            const li = document.createElement('li');
+            li.className = 'list-group-item d-flex justify-content-between align-items-center';
+            li.innerHTML = `
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge rounded-pill wbs-badge ${STATUS_BADGES[c.status] ?? 'text-bg-secondary'}">${STATUS_LABELS[c.status] ?? c.status}</span>
+                    <span>${c.name}</span>
+                    <span class="text-muted small">${Math.round(c.progressPercentage ?? 0)}%</span>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="Activities.openEdit(${c.activityId})">Editar</button>`;
+            rows.appendChild(li);
+        });
+    }
+
+    function toggleInlineSubtaskForm() {
+        const form = document.getElementById('activityInlineSubtaskForm');
+        const btn = document.getElementById('activitySubtaskToggleBtn');
+        const opening = form.classList.contains('d-none');
+
+        if (opening) {
+            document.getElementById('subtaskName').value = '';
+            document.getElementById('subtaskWeight').value = '1';
+            populateCategorySelect(document.getElementById('subtaskCategory'));
+            setSelectValue(document.getElementById('subtaskCategory'), '');
+            populateUserSelect(document.getElementById('subtaskResponsibleId'), '-- Selecciona un responsable --');
+            setSelectValue(document.getElementById('subtaskResponsibleId'), '');
+            form.classList.remove('d-none');
+            btn.classList.add('d-none');
+        } else {
+            form.classList.add('d-none');
+            btn.classList.remove('d-none');
+        }
+    }
+
+    async function saveInlineSubtask() {
+        const parentActivityId = parseInt(document.getElementById('activityId').value, 10);
+        const name = document.getElementById('subtaskName').value.trim();
+        const responsibleId = document.getElementById('subtaskResponsibleId').value;
+
+        if (!name) { alert('Ponle un nombre a la subactividad.'); return; }
+        if (!responsibleId) { alert('Selecciona un responsable.'); return; }
+
+        const dates = defaultDates();
+        const payload = {
+            activityId: 0,
+            projectId: parseInt(projectId(), 10),
+            parentActivityId,
+            name,
+            colorHex: '#4C6EF5',
+            weight: parseFloat(document.getElementById('subtaskWeight').value || '1'),
+            description: '',
+            category: document.getElementById('subtaskCategory').value,
+            status: 1,
+            priority: 2,
+            responsibleUserId: parseInt(responsibleId, 10),
+            estimatedStartDate: dates.start,
+            estimatedEndDate: dates.end,
+            actualStartDate: null,
+            actualEndDate: null,
+            estimatedHours: 0,
+            workedHours: 0,
+            isActive: true,
+        };
+
+        const result = await Aelbry.api.post('/Activity/Create', payload);
+        if (result.result !== 'OK') { alert(result.result); return; }
+
+        await loadAll();
+        renderSubtasksSection(parentActivityId);
+        toggleInlineSubtaskForm();
     }
 
     async function save() {
@@ -557,7 +750,8 @@ window.Activities = (function () {
     }
 
     return {
-        loadAll, toggleCollapse, openCreate, openEdit, save, remove, duplicate,
+        loadAll, applyFilters, toggleCollapse, openCreate, openEdit, save, remove, duplicate,
+        promptNewCategory, toggleInlineSubtaskForm, saveInlineSubtask,
         openChecklist, addChecklistItem, toggleChecklistItem, deleteChecklistItem,
         openTime, startTimer, stopTimer,
         openDependencies, addDependency, removeDependency,

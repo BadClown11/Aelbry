@@ -42,6 +42,7 @@ builder.Services.AddScoped<AutomationEngineBL>();
 builder.Services.AddScoped<AutomationRuleBL>();
 builder.Services.AddScoped<ReportBL>();
 builder.Services.AddScoped<ActivityBL>();
+builder.Services.AddScoped<ActivityCategoryBL>();
 builder.Services.AddScoped<TimeEntryBL>();
 builder.Services.AddScoped<AuditLogBL>();
 
